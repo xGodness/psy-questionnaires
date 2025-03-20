@@ -1,0 +1,6 @@
+{
+  "name": "clients",
+  "create": "CREATE TABLE IF NOT EXISTS clients (login varchar(32) PRIMARY KEY);",
+  "insert": "INSERT INTO clients (login) VALUES (?);",
+  "drop": "DROP TABLE IF EXISTS clients CASCADE;"
+}

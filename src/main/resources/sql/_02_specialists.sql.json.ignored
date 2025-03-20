@@ -1,0 +1,6 @@
+{
+  "name": "specialists",
+  "create": "CREATE TABLE IF NOT EXISTS specialists (login varchar(32) PRIMARY KEY);",
+  "insert": "INSERT INTO specialists (login) VALUES (?);",
+  "drop": "DROP TABLE IF EXISTS specialists CASCADE;"
+}

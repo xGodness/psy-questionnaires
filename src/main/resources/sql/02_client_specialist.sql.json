@@ -1,0 +1,6 @@
+{
+  "name": "client_specialist",
+  "create": "CREATE TABLE IF NOT EXISTS client_specialist (client_login varchar(32) REFERENCES users (login) ON DELETE CASCADE NOT NULL, specialist_login varchar(32) REFERENCES users (login) ON DELETE CASCADE NOT NULL, PRIMARY KEY (client_login, specialist_login));",
+  "insert": "INSERT INTO client_specialist (client_login, specialist_login) VALUES (?, ?);",
+  "drop": "DROP TABLE IF EXISTS client_specialist CASCADE;"
+}
