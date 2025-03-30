@@ -1,6 +1,6 @@
 {
   "name": "users",
-  "create": "DO $$ BEGIN CREATE TYPE role_t AS ENUM ('CLIENT', 'SPECIALIST'); EXCEPTION WHEN duplicate_object THEN null; END $$; CREATE TABLE IF NOT EXISTS users (login varchar(32) PRIMARY KEY, role role_t NOT NULL);",
-  "insert": "INSERT INTO clients (login) VALUES (?);",
-  "drop": "DROP TABLE IF EXISTS clients CASCADE; DROP TYPE IF EXISTS role_t;"
+  "create": "DO $$ BEGIN CREATE TYPE role_t AS ENUM ('CLIENT', 'SPECIALIST'); EXCEPTION WHEN duplicate_object THEN null; END $$; CREATE TABLE IF NOT EXISTS users (username varchar(32) PRIMARY KEY, role role_t NOT NULL, salt VARCHAR(128) NOT NULL, passhash TEXT NOT NULL);",
+  "insert": "INSERT INTO users (username) VALUES (?);",
+  "drop": "DROP TABLE IF EXISTS users CASCADE; DROP TYPE IF EXISTS role_t CASCADE;"
 }

@@ -10,7 +10,7 @@ public class SQLBuilder {
 
         joiner.add(("CREATE TABLE IF NOT EXISTS %s (" +
                 "id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY, " +
-                "client_login varchar(32) REFERENCES clients (login) ON DELETE CASCADE NOT NULL, " +
+                "client_username varchar(32) REFERENCES users (username) ON DELETE CASCADE NOT NULL, " +
                 "is_completed boolean DEFAULT false, " +
                 "completion_date TIMESTAMP, " +
                 "result_sum integer")
@@ -23,6 +23,7 @@ public class SQLBuilder {
             joiner.add("q%d integer CHECK (q%d >= 0 AND q%d < %d)".formatted(i, i, i, answerCount));
         }
 
+        // TODO: trigger for checking user role ??
         return joiner + ");";
     }
 
@@ -41,6 +42,6 @@ public class SQLBuilder {
     }
 
     public static String buildInsertRecordStatement(Questionnaire questionnaire, String clientLogin) {
-        return "INSERT INTO %s (client_login) VALUES %s;".formatted(questionnaire.getName(), clientLogin);
+        return "INSERT INTO %s (client_username) VALUES %s;".formatted(questionnaire.getName(), clientLogin);
     }
 }

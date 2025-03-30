@@ -2,12 +2,13 @@ package ru.xgodness.persistence;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.Getter;
 import lombok.extern.java.Log;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import ru.xgodness.persistence.sql.SQLBuilder;
 import ru.xgodness.persistence.sql.SQLTemplateProvider;
 import ru.xgodness.questionnaire.QuestionnaireProvider;
-import ru.xgodness.util.PropertiesProvider;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -16,16 +17,26 @@ import java.sql.SQLException;
 @Log
 @Component
 public class ConnectionManager {
+
+    @Getter
     private final Connection connection;
 
+    private final boolean isDropTablesOnShutdown;
+
+    // TODO: remove
     public static void stub() {
     }
 
-    public ConnectionManager() {
-        var params = PropertiesProvider.getConnectionParams();
+    public ConnectionManager(
+            @Value("${development.drop-tables-on-shutdown}") String isDropTablesOnShutdown,
+            @Value("${persistence.jdbc.url}") String url,
+            @Value("${persistence.jdbc.username}") String username,
+            @Value("${persistence.jdbc.password}") String password
+    ) {
+        this.isDropTablesOnShutdown = isDropTablesOnShutdown.equals("true");
 
         try {
-            connection = DriverManager.getConnection(params.getUrl(), params.getUsername(), params.getPassword());
+            connection = DriverManager.getConnection(url, username, password);
         } catch (SQLException ex) {
             log.severe(ex.getMessage());
             throw new RuntimeException(ex);
@@ -43,7 +54,7 @@ public class ConnectionManager {
     }
 
     @PostConstruct
-    private void initializeTables() {
+    private void initializeSchema() {
         SQLTemplateProvider.getTemplateMap().values().forEach(
                 template -> {
                     String sql = template.createStatement();
@@ -61,7 +72,7 @@ public class ConnectionManager {
 
     @PreDestroy
     private void shutdown() throws SQLException {
-        if (PropertiesProvider.dropTablesOnShutdown()) {
+        if (isDropTablesOnShutdown) {
             QuestionnaireProvider.getQuestionnaireMap().values().forEach((
                     questionnaire -> {
                         String sql = SQLBuilder.buildDropStatement(questionnaire);

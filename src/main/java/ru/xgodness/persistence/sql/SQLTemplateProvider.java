@@ -21,6 +21,7 @@ public class SQLTemplateProvider {
     private static final String TEMPLATES_DIR_PATH = PropertiesProvider.getRESOURCES_PATH() + "sql/";
     /**
      * LinkedHashMap used to preserve order of insertions for proper SQL statements order of execution later
+     *
      * @see ConnectionManager#initializeTables()
      */
     @Getter

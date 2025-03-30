@@ -10,6 +10,8 @@ import java.util.Properties;
 
 import static java.util.Objects.requireNonNull;
 
+
+// TODO: remove ?
 @Log
 public class PropertiesProvider {
     @Getter
@@ -41,7 +43,7 @@ public class PropertiesProvider {
         );
     }
 
-    public static boolean dropTablesOnShutdown() {
+    public static boolean isDropTablesOnShutdown() {
         return properties.getProperty("development.drop-tables-on-shutdown").equals("1");
     }
 

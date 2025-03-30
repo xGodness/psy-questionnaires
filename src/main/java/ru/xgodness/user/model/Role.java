@@ -6,7 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 @RequiredArgsConstructor
 public enum Role implements GrantedAuthority {
     CLIENT("CLIENT"),
-    SCPECIALIST("SPECIALIST");
+    SPECIALIST("SPECIALIST");
 
     private final String value;
 

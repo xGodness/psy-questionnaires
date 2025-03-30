@@ -1,9 +1,13 @@
 package ru.xgodness.user.model;
 
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@AllArgsConstructor
+@Getter
 public class User {
-    private String login;
-    private String password;
-    private Set<Role> roles;
+    private String username;
+    private String passhash;
+    private String salt;
+    private Role role;
 }
