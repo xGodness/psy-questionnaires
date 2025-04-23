@@ -3,8 +3,7 @@ package ru.xgodness.endpoint.user.dto;
 import lombok.Getter;
 
 @Getter
-public class RegisterRequest {
+public class LoginRequest {
     private String username;
     private String password;
-    private String role;
 }

@@ -3,7 +3,7 @@ package ru.xgodness.security;
 import lombok.Setter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import ru.xgodness.user.model.Role;
+import ru.xgodness.endpoint.user.model.Role;
 
 import java.util.Collection;
 import java.util.Set;

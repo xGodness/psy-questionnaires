@@ -6,11 +6,11 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.NonNull;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ru.xgodness.endpoint.user.model.User;
 import ru.xgodness.exception.AuthException;
-import ru.xgodness.user.model.User;
 
 import javax.crypto.SecretKey;
 import java.time.LocalDateTime;
@@ -21,35 +21,37 @@ import java.util.Date;
 @Component
 public class JwtProvider {
 
-    private final String ISSUER = "ru.xgodness";
+    private final static String ISSUER = "ru.xgodness";
+    private final static int REFRESH_EXPIRE_IN_DAYS = 30;
+    private final static int ACCESS_EXPIRE_IN_MINUTES = 5;
 
     private final SecretKey jwtAccessSecret;
     private final SecretKey jwtRefreshSecret;
 
-    public JwtProvider(
-            @Value("${jwt.secret.access}") String jwtAccessSecret,
-            @Value("${jwt.secret.refresh}") String jwtRefreshSecret
-    ) {
+    public JwtProvider() {
+        String jwtAccessSecret = System.getenv("JWT_SECRET_ACCESS");
+        String jwtRefreshSecret = System.getenv("JWT_SECRET_REFRESH");
+        if (jwtAccessSecret == null || jwtRefreshSecret == null)
+            throw new RuntimeException("Some of JWT secrets are not set as env variables");
+
         this.jwtAccessSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtAccessSecret));
         this.jwtRefreshSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtRefreshSecret));
     }
 
-    // TODO: check that user isn't null
-    public String generateAccessToken(User user) {
+    public String generateAccessToken(@NonNull User user) {
         Date expiration = Date.from(
                 LocalDateTime.now()
-                        .plusMinutes(5)
+                        .plusMinutes(ACCESS_EXPIRE_IN_MINUTES)
                         .atZone(ZoneId.systemDefault())
                         .toInstant()
         );
         return generateToken(user, expiration, jwtAccessSecret);
     }
 
-    // TODO: check that user isn't null
-    public String generateRefreshToken(User user) {
+    public String generateRefreshToken(@NonNull User user) {
         Date expiration = Date.from(
                 LocalDateTime.now()
-                        .plusDays(30)
+                        .plusDays(REFRESH_EXPIRE_IN_DAYS)
                         .atZone(ZoneId.systemDefault())
                         .toInstant()
         );
@@ -66,19 +68,18 @@ public class JwtProvider {
                 .compact();
     }
 
-    // TODO: check token isn't null
     public void validateAccessToken(String accessToken) {
         validateToken(accessToken, jwtAccessSecret);
     }
 
-    // TODO: check token isn't null
     public void validateRefreshToken(String refreshToken) {
         validateToken(refreshToken, jwtRefreshSecret);
     }
 
-    // TODO: check token isn't null
     private void validateToken(String token, SecretKey secret) {
-        // TODO: is it possible to check
+        if (token == null)
+            throw new AuthException("JWT must not be null");
+
         try {
             Jwts.parser()
                     .requireIssuer(ISSUER)
@@ -97,17 +98,14 @@ public class JwtProvider {
         }
     }
 
-    // TODO: check token isn't null
-    public Claims getAccessClaims(String token) {
+    public Claims getAccessClaims(@NonNull String token) {
         return getClaims(token, jwtAccessSecret);
     }
 
-    // TODO: check token isn't null
-    public Claims getRefreshClaims(String token) {
+    public Claims getRefreshClaims(@NonNull String token) {
         return getClaims(token, jwtRefreshSecret);
     }
 
-    // TODO: check token isn't null
     private Claims getClaims(String token, SecretKey secret) {
         return Jwts.parser()
                 .verifyWith(secret)

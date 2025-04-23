@@ -6,9 +6,7 @@ import lombok.Getter;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import ru.xgodness.persistence.sql.SQLBuilder;
-import ru.xgodness.persistence.sql.SQLTemplateProvider;
-import ru.xgodness.questionnaire.QuestionnaireProvider;
+import ru.xgodness.endpoint.questionnaire.QuestionnaireProvider;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -23,20 +21,16 @@ public class ConnectionManager {
 
     private final boolean isDropTablesOnShutdown;
 
-    // TODO: remove
-    public static void stub() {
-    }
-
     public ConnectionManager(
-            @Value("${development.drop-tables-on-shutdown}") String isDropTablesOnShutdown,
-            @Value("${persistence.jdbc.url}") String url,
-            @Value("${persistence.jdbc.username}") String username,
-            @Value("${persistence.jdbc.password}") String password
+            @Value("${development.drop-tables-on-shutdown}") String isDropTablesOnShutdown
     ) {
-        this.isDropTablesOnShutdown = isDropTablesOnShutdown.equals("true");
+        this.isDropTablesOnShutdown = Boolean.parseBoolean(isDropTablesOnShutdown);
 
         try {
-            connection = DriverManager.getConnection(url, username, password);
+            String dsn = System.getenv("PG_DSN");
+            if (dsn == null)
+                throw new RuntimeException("PG_DSN env variable is not set");
+            connection = DriverManager.getConnection(dsn);
         } catch (SQLException ex) {
             log.severe(ex.getMessage());
             throw new RuntimeException(ex);
@@ -49,18 +43,13 @@ public class ConnectionManager {
         } catch (SQLException ex) {
             log.severe("Error while executing SQL statement: %s".formatted(sql));
             log.severe(ex.getMessage());
-            throw new RuntimeException();
+            throw new RuntimeException(ex);
         }
     }
 
     @PostConstruct
     private void initializeSchema() {
-        SQLTemplateProvider.getTemplateMap().values().forEach(
-                template -> {
-                    String sql = template.createStatement();
-                    executeSql(sql);
-                }
-        );
+        MigrationProvider.getInitQueries().forEach(this::executeSql);
 
         QuestionnaireProvider.getQuestionnaireMap().values().forEach(
                 questionnaire -> {
@@ -80,12 +69,7 @@ public class ConnectionManager {
                     }
             ));
 
-            SQLTemplateProvider.getTemplateMap().values().forEach(
-                    template -> {
-                        String sql = template.dropStatement();
-                        executeSql(sql);
-                    }
-            );
+            executeSql(MigrationProvider.getDropAllQuery());
         }
 
         connection.close();

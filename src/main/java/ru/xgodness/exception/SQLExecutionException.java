@@ -1,10 +1,19 @@
 package ru.xgodness.exception;
 
+import ru.xgodness.exception.handling.ErrorMessages;
+
+import java.util.List;
+
 public class SQLExecutionException extends ApplicationException {
-    public SQLExecutionException(String message) {
-        super(message);
+    public SQLExecutionException(ErrorMessages errorMessages) {
+        super(errorMessages);
     }
 
-    public SQLExecutionException() {
+    public SQLExecutionException(String... errors) {
+        super(errors);
+    }
+
+    public SQLExecutionException(List<String> errors) {
+        super(errors);
     }
 }

@@ -6,11 +6,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.xgodness.endpoint.user.dto.JwtRequest;
+import ru.xgodness.endpoint.user.dto.LoginRequest;
 import ru.xgodness.endpoint.user.dto.JwtResponse;
 import ru.xgodness.endpoint.user.dto.RefreshJwtRequest;
 import ru.xgodness.endpoint.user.dto.RegisterRequest;
-import ru.xgodness.user.service.AuthService;
+import ru.xgodness.endpoint.user.service.AuthService;
 
 @RestController
 @RequestMapping("/auth")
@@ -21,16 +21,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<Void> register(@RequestBody RegisterRequest registerRequest) {
-        authService.register(
-                registerRequest.getUsername(),
-                registerRequest.getPassword(),
-                registerRequest.getRole()
-        );
+        authService.register(registerRequest);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JwtResponse> login(@RequestBody JwtRequest authRequest) {
+    public ResponseEntity<JwtResponse> login(@RequestBody LoginRequest authRequest) {
         JwtResponse jwtResponse = authService.login(authRequest);
         return ResponseEntity.ok(jwtResponse);
     }

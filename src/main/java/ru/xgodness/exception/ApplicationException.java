@@ -1,13 +1,24 @@
 package ru.xgodness.exception;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import ru.xgodness.exception.handling.ErrorMessages;
 
-@AllArgsConstructor
-@NoArgsConstructor
+import java.util.List;
+
 @Getter
 public class ApplicationException extends RuntimeException {
-    private String message;
+    private final ErrorMessages errorMessages;
+
+    public ApplicationException(ErrorMessages errorMessages) {
+        this.errorMessages = errorMessages;
+    }
+
+    public ApplicationException(String... errors) {
+        this.errorMessages = new ErrorMessages(errors);
+    }
+
+    public ApplicationException(List<String> errors) {
+        this.errorMessages = new ErrorMessages(errors);
+    }
 }
 

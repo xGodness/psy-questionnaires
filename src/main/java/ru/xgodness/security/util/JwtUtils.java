@@ -2,7 +2,7 @@ package ru.xgodness.security.util;
 
 import io.jsonwebtoken.Claims;
 import ru.xgodness.security.JwtAuthentication;
-import ru.xgodness.user.model.Role;
+import ru.xgodness.endpoint.user.model.Role;
 
 public class JwtUtils {
     public static JwtAuthentication generateAuthentication(Claims claims) {

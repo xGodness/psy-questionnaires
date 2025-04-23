@@ -13,11 +13,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
 import ru.xgodness.security.JwtAuthentication;
+import ru.xgodness.security.SecurityConfig;
 import ru.xgodness.security.util.JwtProvider;
 import ru.xgodness.security.util.JwtUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Log
 @Component
@@ -28,16 +31,13 @@ public class JwtFilter extends GenericFilterBean {
     private final JwtProvider jwtProvider;
     private final Set<String> noAuthorizationPaths;
 
-
     public JwtFilter(JwtProvider jwtProvider,
                      @Value("${server.servlet.context-path}") String contextPath) {
         this.jwtProvider = jwtProvider;
 
-        noAuthorizationPaths = Set.of(
-                contextPath + "/auth/register",
-                contextPath + "/auth/login",
-                contextPath + "/auth/token/access"
-        );
+        noAuthorizationPaths = Arrays.stream(SecurityConfig.getNoAuthorizationPaths())
+                .map(path -> contextPath + path)
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -46,8 +46,8 @@ public class JwtFilter extends GenericFilterBean {
 
         if (!noAuthorizationPaths.contains(((HttpServletRequest) request).getRequestURI())) {
             String token = getTokenFromRequest((HttpServletRequest) request);
-            if (token != null)
-                jwtProvider.validateAccessToken(token);
+
+            jwtProvider.validateAccessToken(token);
 
             Claims claims = jwtProvider.getAccessClaims(token);
             JwtAuthentication authentication = JwtUtils.generateAuthentication(claims);

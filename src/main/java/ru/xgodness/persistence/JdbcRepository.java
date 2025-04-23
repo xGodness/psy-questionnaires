@@ -16,8 +16,7 @@ public abstract class JdbcRepository {
         this.connection = connectionManager.getConnection();
     }
 
-    // TODO: rename?
-    protected SQLExecutionException logAndMorphSQLException(SQLException ex) {
+    protected SQLExecutionException handleSQLException(SQLException ex) {
         log.severe("Error while executing SQL statement");
         log.severe(ex.getMessage());
         return new SQLExecutionException();
