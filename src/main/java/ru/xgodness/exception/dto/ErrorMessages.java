@@ -1,4 +1,4 @@
-package ru.xgodness.exception.handling;
+package ru.xgodness.exception.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

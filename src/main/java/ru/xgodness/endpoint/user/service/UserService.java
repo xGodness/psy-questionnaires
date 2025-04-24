@@ -2,6 +2,7 @@ package ru.xgodness.endpoint.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.xgodness.endpoint.user.model.Role;
 import ru.xgodness.endpoint.user.model.User;
 import ru.xgodness.endpoint.user.repository.UserRepository;
 
@@ -14,7 +15,11 @@ public class UserService {
     private final UserRepository userRepository;
 
     public Optional<User> getByUsername(String username) {
-        return userRepository.findUserByUsername(username);
+        return userRepository.findByUsername(username);
+    }
+
+    public Optional<User> getByUsernameAndRole(String username, Role role) {
+        return userRepository.findByUsernameAndRole(username, role);
     }
 
 }

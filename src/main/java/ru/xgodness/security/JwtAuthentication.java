@@ -32,7 +32,7 @@ public class JwtAuthentication implements Authentication {
 
     @Override
     public Object getPrincipal() {
-        return username;
+        return username; // TODO: return User model maybe?
     }
 
     @Override
@@ -41,12 +41,12 @@ public class JwtAuthentication implements Authentication {
     }
 
     @Override
-    public void setAuthenticated(boolean isAuthenticated) throws IllegalArgumentException {
+    public void setAuthenticated(boolean isAuthenticated) {
         this.isAuthenticated = isAuthenticated;
     }
 
     @Override
     public String getName() {
-        return null;
+        return username;
     }
 }

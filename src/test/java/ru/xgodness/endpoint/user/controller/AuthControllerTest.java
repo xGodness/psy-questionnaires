@@ -1,25 +1,21 @@
 package ru.xgodness.endpoint.user.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import ru.xgodness.exception.handling.ErrorMessages;
+import ru.xgodness.exception.dto.ErrorMessages;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.*;
+import static ru.xgodness.endpoint.user.controller.TestUtils.*;
 
 
 @SpringBootTest(
@@ -29,21 +25,11 @@ import static org.springframework.http.HttpStatus.*;
 @Log
 public class AuthControllerTest {
 
-    private static final String REGISTER_PATH = "/auth/register";
-    private static final String LOGIN_PATH = "/auth/login";
-    private static final String TOKEN_ACCESS_PATH = "/auth/token/access";
-    private static final String TOKEN_REFRESH_PATH = "/auth/token/refresh";
-
     private static String accessToken = null;
     private static String refreshToken = null;
 
-    @LocalServerPort
-    private int port;
-
     @Autowired
     private TestRestTemplate restTemplate;
-
-    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final String username = "user";
     private final String password = "password__123**!";
@@ -77,8 +63,9 @@ public class AuthControllerTest {
 
         log.info(entity.toString());
 
-        ErrorMessages errors = mapStringToErrorMessages(entity.getBody());
         assertEquals(BAD_REQUEST, entity.getStatusCode());
+
+        ErrorMessages errors = mapStringToErrorMessages(entity.getBody());
         assertEquals(List.of("Request body is not readable"), errors.getMessages());
     }
 
@@ -97,8 +84,9 @@ public class AuthControllerTest {
 
         log.info(entity.toString());
 
-        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(UNPROCESSABLE_ENTITY, entity.getStatusCode());
+
+        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(List.of("Пароль не может быть короче 8 символов"), errorMessages.getMessages());
     }
 
@@ -117,8 +105,9 @@ public class AuthControllerTest {
 
         log.info(entity.toString());
 
-        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(UNPROCESSABLE_ENTITY, entity.getStatusCode());
+
+        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(List.of("Имя пользователя не может быть длиннее 64 символов"), errorMessages.getMessages());
     }
 
@@ -138,8 +127,9 @@ public class AuthControllerTest {
 
         log.info(entity.toString());
 
-        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(UNPROCESSABLE_ENTITY, entity.getStatusCode());
+
+        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(List.of("Пароль не может быть пустым", "Роль пользователя не может быть пустой"), errorMessages.getMessages());
     }
 
@@ -177,8 +167,9 @@ public class AuthControllerTest {
 
         log.info(entity.toString());
 
-        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(CONFLICT, entity.getStatusCode());
+
+        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(List.of("Пользователь с именем %s уже существует".formatted(username)), errorMessages.getMessages());
     }
 
@@ -196,8 +187,9 @@ public class AuthControllerTest {
 
         log.info(entity.toString());
 
-        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(UNAUTHORIZED, entity.getStatusCode());
+
+        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(List.of("Неправильный логин или пароль"), errorMessages.getMessages());
     }
 
@@ -215,8 +207,9 @@ public class AuthControllerTest {
 
         log.info(entity.toString());
 
-        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(UNAUTHORIZED, entity.getStatusCode());
+
+        ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
         assertEquals(List.of("Неправильный логин или пароль"), errorMessages.getMessages());
     }
 
@@ -438,43 +431,6 @@ public class AuthControllerTest {
 
         AuthControllerTest.accessToken = accessToken;
         AuthControllerTest.refreshToken = refreshToken;
-    }
-
-    private static ErrorMessages mapStringToErrorMessages(String string) throws Exception {
-        return objectMapper.readValue(string, ErrorMessages.class);
-    }
-
-    private static JwtResponse mapStringToJwtResponse(String string) throws Exception {
-        return objectMapper.readValue(string, JwtResponse.class);
-    }
-
-    @AllArgsConstructor
-    @Getter
-    private static class RegisterRequest {
-        private String username;
-        private String password;
-        private String role;
-    }
-
-    @AllArgsConstructor
-    @Getter
-    private static class LoginRequest {
-        private String username;
-        private String password;
-    }
-
-    @AllArgsConstructor
-    @Getter
-    private static class RefreshJwtRequest {
-        private String refreshToken;
-    }
-
-    @Setter
-    @Getter
-    private static class JwtResponse {
-        private String type;
-        private String accessToken;
-        private String refreshToken;
     }
 
 }

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -14,6 +15,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 import ru.xgodness.exception.*;
+import ru.xgodness.exception.dto.ErrorMessages;
 
 @Log
 @ControllerAdvice
@@ -77,14 +79,62 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         );
     }
 
-    @ExceptionHandler(value = UsernameNotFoundException.class)
-    protected ResponseEntity<Object> handle(UsernameNotFoundException ex, WebRequest request) {
+    @ExceptionHandler(value = BindRequestAlreadyExistsException.class)
+    protected ResponseEntity<Object> handle(BindRequestAlreadyExistsException ex, WebRequest request) {
+        log.info("Caught BindAlreadyExistsException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
+                new HttpHeaders(),
+                HttpStatus.CONFLICT,
+                request
+        );
+    }
+
+    @ExceptionHandler(value = UserNotFoundException.class)
+    protected ResponseEntity<Object> handle(UserNotFoundException ex, WebRequest request) {
         log.info("Caught UsernameNotFoundException: " + ex.getMessage());
         return super.handleExceptionInternal(
                 ex,
                 ex.getErrorMessages(),
                 new HttpHeaders(),
                 HttpStatus.NOT_FOUND,
+                request
+        );
+    }
+
+    @ExceptionHandler(value = BindRequestNotFoundException.class)
+    protected ResponseEntity<Object> handle(BindRequestNotFoundException ex, WebRequest request) {
+        log.info("Caught BindRequestNotFoundException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
+                new HttpHeaders(),
+                HttpStatus.NOT_FOUND,
+                request
+        );
+    }
+
+    @ExceptionHandler(value = AuthorizationDeniedException.class)
+    protected ResponseEntity<Object> handle(AuthorizationDeniedException ex, WebRequest request) {
+        log.info("Caught AuthorizationDeniedException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                new ErrorMessages("Доступ запрещен"),
+                new HttpHeaders(),
+                HttpStatus.FORBIDDEN,
+                request
+        );
+    }
+
+    @ExceptionHandler(value = URITooLongException.class)
+    protected ResponseEntity<Object> handle(URITooLongException ex, WebRequest request) {
+        log.info("Caught URITooLongException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
+                new HttpHeaders(),
+                HttpStatus.URI_TOO_LONG,
                 request
         );
     }

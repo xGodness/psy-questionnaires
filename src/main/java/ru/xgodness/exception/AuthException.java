@@ -1,6 +1,6 @@
 package ru.xgodness.exception;
 
-import ru.xgodness.exception.handling.ErrorMessages;
+import ru.xgodness.exception.dto.ErrorMessages;
 
 import java.util.List;
 

@@ -4,19 +4,17 @@ import io.jsonwebtoken.Claims;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
-import ru.xgodness.endpoint.user.dto.LoginRequest;
 import ru.xgodness.endpoint.user.dto.JwtResponse;
+import ru.xgodness.endpoint.user.dto.LoginRequest;
 import ru.xgodness.endpoint.user.dto.RegisterRequest;
-import ru.xgodness.exception.AuthException;
-import ru.xgodness.exception.UsernameAlreadyTakenException;
-import ru.xgodness.security.JwtAuthentication;
-import ru.xgodness.security.util.JwtProvider;
 import ru.xgodness.endpoint.user.model.Role;
 import ru.xgodness.endpoint.user.model.User;
 import ru.xgodness.endpoint.user.repository.UserRepository;
+import ru.xgodness.exception.AuthException;
+import ru.xgodness.exception.UsernameAlreadyTakenException;
+import ru.xgodness.security.util.JwtProvider;
 import ru.xgodness.util.ValidationUtils;
 
 import java.util.HashMap;
@@ -58,7 +56,7 @@ public class AuthService {
                 Role.valueOfIgnoreCase(roleString)
         );
 
-        userRepository.saveUser(user);
+        userRepository.save(user);
     }
 
     public JwtResponse login(@NonNull LoginRequest loginRequest) {
@@ -71,7 +69,7 @@ public class AuthService {
                 .password(password)
                 .validate();
 
-        Optional<User> userOpt = userRepository.findUserByUsername(loginRequest.getUsername());
+        Optional<User> userOpt = userRepository.findByUsername(loginRequest.getUsername());
         User user = userOpt.orElseThrow(() -> authException);
 
         String passhash = BCrypt.hashpw(loginRequest.getPassword(), user.getSalt());
@@ -95,7 +93,7 @@ public class AuthService {
         if (savedRefreshToken == null || !savedRefreshToken.equals(refreshToken))
             throw new AuthException("Invalid JWT");
 
-        Optional<User> userOpt = userRepository.findUserByUsername(username);
+        Optional<User> userOpt = userRepository.findByUsername(username);
         User user = userOpt.orElseThrow(() -> authException);
 
         String accessToken = jwtProvider.generateAccessToken(user);
@@ -109,7 +107,4 @@ public class AuthService {
         return new JwtResponse(accessToken, newRefreshToken);
     }
 
-    public JwtAuthentication getAuthInfo() {
-        return (JwtAuthentication) SecurityContextHolder.getContext().getAuthentication();
-    }
 }

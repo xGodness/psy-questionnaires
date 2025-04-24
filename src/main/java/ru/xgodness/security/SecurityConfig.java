@@ -45,8 +45,8 @@ public class SecurityConfig {
                                 .requestMatchers(noAuthorizationPaths).permitAll()
                                 .anyRequest().authenticated()
                 )
-                .addFilterAfter(uriLengthFilter, X509AuthenticationFilter.class)
-                .addFilterAfter(filterChainExceptionHandler, URILengthFilter.class)
+                .addFilterAfter(filterChainExceptionHandler, X509AuthenticationFilter.class)
+                .addFilterAfter(uriLengthFilter, FilterChainExceptionHandler.class)
                 .addFilterAfter(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

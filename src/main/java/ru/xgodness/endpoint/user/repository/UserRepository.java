@@ -22,26 +22,36 @@ public class UserRepository extends JdbcRepository {
 
     // TODO: should I use @NonNull from lombok to generate checks here? or just validate externally?
 
-    public Optional<User> findUserByUsername(String username) {
+    public Optional<User> findByUsername(String username) {
         try (var statement = super.getConnection().prepareStatement(
                 "SELECT * FROM app_user WHERE username = ?;"
         )) {
             statement.setString(1, username);
             ResultSet rs = statement.executeQuery();
-            if (rs.next())
-                return Optional.of(new User(
-                        rs.getString("username"),
-                        rs.getString("passhash"),
-                        rs.getString("salt"),
-                        Role.valueOf(rs.getString("role"))
-                ));
-            return Optional.empty();
+
+            return mapToUserOptional(rs);
+
         } catch (SQLException ex) {
             throw super.handleSQLException(ex);
         }
     }
 
-    public void saveUser(User user) {
+    public Optional<User> findByUsernameAndRole(String username, Role role) {
+        try (var statement = super.getConnection().prepareStatement(
+                "SELECT * FROM app_user WHERE username = ? AND role = ?;"
+        )) {
+            statement.setString(1, username);
+            statement.setObject(2, role, Types.OTHER);
+            ResultSet rs = statement.executeQuery();
+
+            return mapToUserOptional(rs);
+
+        } catch (SQLException ex) {
+            throw super.handleSQLException(ex);
+        }
+    }
+
+    public boolean save(User user) {
         try (var statement = super.getConnection().prepareStatement(
                 "INSERT INTO app_user (username, passhash, salt, role) VALUES (?, ?, ?, ?);"
         )) {
@@ -49,7 +59,8 @@ public class UserRepository extends JdbcRepository {
             statement.setString(2, user.getPasshash());
             statement.setString(3, user.getSalt());
             statement.setObject(4, user.getRole().getAuthority(), Types.OTHER);
-            statement.executeUpdate();
+            return 1 == statement.executeUpdate();
+
         } catch (SQLException ex) {
             throw super.handleSQLException(ex);
         }
@@ -62,8 +73,34 @@ public class UserRepository extends JdbcRepository {
             statement.setString(1, username);
             ResultSet rs = statement.executeQuery();
             return rs.next();
+
         } catch (SQLException ex) {
             throw super.handleSQLException(ex);
         }
+    }
+
+    public boolean existsByUsernameAndRole(String username, Role role) {
+        try (var statement = super.getConnection().prepareStatement(
+                "SELECT * FROM app_user WHERE username = ? AND role = ?;"
+        )) {
+            statement.setString(1, username);
+            statement.setObject(2, role, Types.OTHER);
+            ResultSet rs = statement.executeQuery();
+            return rs.next();
+
+        } catch (SQLException ex) {
+            throw super.handleSQLException(ex);
+        }
+    }
+
+    private Optional<User> mapToUserOptional(ResultSet rs) throws SQLException {
+        if (rs.next())
+            return Optional.of(new User(
+                    rs.getString("username"),
+                    rs.getString("passhash"),
+                    rs.getString("salt"),
+                    Role.valueOfIgnoreCase(rs.getString("role"))
+            ));
+        return Optional.empty();
     }
 }
