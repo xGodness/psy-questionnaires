@@ -36,8 +36,8 @@ public class ValidationUtils {
             else {
                 if (!username.matches("[a-zA-Z0-9]+"))
                     errorMessages.add("Имя пользователя может состоять из букв латинского алфавита и цифр");
-                if (username.length() > 64)
-                    errorMessages.add("Имя пользователя не может быть длиннее 64 символов");
+                if (username.length() > 32)
+                    errorMessages.add("Имя пользователя не может быть длиннее 32 символов");
             }
             return this;
         }

@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import ru.xgodness.endpoint.user.model.Role;
 import ru.xgodness.endpoint.user.model.User;
-import ru.xgodness.persistence.ConnectionManager;
+import ru.xgodness.persistence.DatabaseManager;
 import ru.xgodness.persistence.JdbcRepository;
 
 import java.sql.ResultSet;
@@ -16,8 +16,8 @@ import java.util.Optional;
 public class UserRepository extends JdbcRepository {
 
     @Autowired
-    public UserRepository(ConnectionManager connectionManager) {
-        super(connectionManager);
+    public UserRepository(DatabaseManager databaseManager) {
+        super(databaseManager);
     }
 
     // TODO: should I use @NonNull from lombok to generate checks here? or just validate externally?

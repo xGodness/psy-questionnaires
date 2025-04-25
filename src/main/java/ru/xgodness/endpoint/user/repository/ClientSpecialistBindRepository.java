@@ -3,7 +3,7 @@ package ru.xgodness.endpoint.user.repository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import ru.xgodness.endpoint.user.dto.BindList;
-import ru.xgodness.persistence.ConnectionManager;
+import ru.xgodness.persistence.DatabaseManager;
 import ru.xgodness.persistence.JdbcRepository;
 
 import java.sql.ResultSet;
@@ -15,8 +15,8 @@ import java.util.List;
 public class ClientSpecialistBindRepository extends JdbcRepository {
 
     @Autowired
-    public ClientSpecialistBindRepository(ConnectionManager connectionManager) {
-        super(connectionManager);
+    public ClientSpecialistBindRepository(DatabaseManager databaseManager) {
+        super(databaseManager);
     }
 
     public boolean createBindRequest(String clientUsername, String specialistUsername) {

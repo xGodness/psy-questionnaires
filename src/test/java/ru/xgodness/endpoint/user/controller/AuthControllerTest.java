@@ -108,7 +108,7 @@ public class AuthControllerTest {
         assertEquals(UNPROCESSABLE_ENTITY, entity.getStatusCode());
 
         ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
-        assertEquals(List.of("Имя пользователя не может быть длиннее 64 символов"), errorMessages.getMessages());
+        assertEquals(List.of("Имя пользователя не может быть длиннее 32 символов"), errorMessages.getMessages());
     }
 
 

@@ -12,8 +12,8 @@ public abstract class JdbcRepository {
     @Getter
     private final Connection connection;
 
-    protected JdbcRepository(ConnectionManager connectionManager) {
-        this.connection = connectionManager.getConnection();
+    protected JdbcRepository(DatabaseManager databaseManager) {
+        this.connection = databaseManager.getConnection();
     }
 
     protected SQLExecutionException handleSQLException(SQLException ex) {

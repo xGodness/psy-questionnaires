@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 @Log
-public class MigrationProvider {
+public class StaticMigrationDDLProvider {
     private static final String MIGRATIONS_DIR_PATH = "src/main/resources/migrations";
 
     @SneakyThrows

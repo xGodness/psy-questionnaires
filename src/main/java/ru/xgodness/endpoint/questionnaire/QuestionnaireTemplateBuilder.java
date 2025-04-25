@@ -5,6 +5,9 @@ import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import ru.xgodness.endpoint.questionnaire.dto.EvaluationQuestionnaireTemplate;
+import ru.xgodness.endpoint.questionnaire.dto.QuestionnaireTemplate;
+import ru.xgodness.endpoint.questionnaire.dto.SelectionQuestionnaireTemplate;
 import ru.xgodness.endpoint.questionnaire.model.*;
 
 import java.io.IOException;
@@ -12,24 +15,22 @@ import java.io.InvalidObjectException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
 
 @Log
-public class QuestionnaireProvider {
+public class QuestionnaireTemplateBuilder {
     private static final String QUESTIONNAIRE_FILE_SUFFIX = ".questionnaire.json";
     private static final String QUESTIONNAIRES_DIR_PATH = "src/main/resources/questionnaires";
+
     @Getter
-    private static final Map<String, Questionnaire> questionnaireMap = new HashMap<>();
+    private static final Set<QuestionnaireTemplate> templates = new HashSet<>();
 
     static {
         try {
-            initializeQuestionnaires();
+            buildTemplates();
         } catch (Exception ex) {
             log.severe(ex.getMessage());
             throw new RuntimeException(ex);
@@ -37,17 +38,17 @@ public class QuestionnaireProvider {
     }
 
     @SneakyThrows
-    private static void initializeQuestionnaires() {
+    private static void buildTemplates() {
         try (Stream<Path> paths = Files.walk(Paths.get(QUESTIONNAIRES_DIR_PATH))) {
             paths
                     .filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(QUESTIONNAIRE_FILE_SUFFIX))
-                    .forEach(QuestionnaireProvider::mapQuestionnaire);
+                    .forEach(QuestionnaireTemplateBuilder::parseTemplate);
         }
     }
 
     @SneakyThrows(IOException.class)
-    private static void mapQuestionnaire(Path questionnaireFilePath) {
+    private static void parseTemplate(Path questionnaireFilePath) {
         String jsonString = Files.readString(questionnaireFilePath);
         JSONObject rootObj = new JSONObject(jsonString);
 
@@ -72,16 +73,14 @@ public class QuestionnaireProvider {
             ));
         }
 
-        Questionnaire.QuestionnaireBuilder<?, ?> builder;
+        QuestionnaireTemplate.QuestionnaireTemplateBuilder<?, ?> builder;
         switch (requireNonNull(type)) {
-            case SELECTION -> builder = mapSelectionQuestionnaire(rootObj);
-            case EVALUATION -> builder = mapEvaluationQuestionnaire(rootObj);
+            case SELECTION -> builder = buildSelectionQuestionnaire(rootObj);
+            case EVALUATION -> builder = buildEvaluationQuestionnaire(rootObj);
             default -> throw new InvalidObjectException("Invalid questionnaire type");
         }
 
-        questionnaireMap.put(
-                // TODO: display_name or name as key?
-                name,
+        templates.add(
                 builder
                         .name(name)
                         .type(type)
@@ -95,17 +94,17 @@ public class QuestionnaireProvider {
         );
     }
 
-    private static SelectionQuestionnaire.SelectionQuestionnaireBuilder<?, ?> mapSelectionQuestionnaire(JSONObject rootObj) {
+    private static SelectionQuestionnaireTemplate.SelectionQuestionnaireTemplateBuilder<?, ?> buildSelectionQuestionnaire(JSONObject rootObj) {
         List<List<String>> answerOptions = new ArrayList<>();
         JSONArray jsonArray = rootObj.getJSONArray("answer_options");
         for (var i = 0; i < jsonArray.length(); i++)
             answerOptions.add(jsonArray.getJSONArray(i).toList().stream().map(Object::toString).toList());
 
-        return SelectionQuestionnaire.builder().answerOptions(answerOptions);
+        return SelectionQuestionnaireTemplate.builder().answerOptions(answerOptions);
     }
 
-    private static EvaluationQuestionnaire.EvaluationQuestionnaireBuilder<?, ?> mapEvaluationQuestionnaire(JSONObject rootObj) {
-        return EvaluationQuestionnaire.builder()
+    private static EvaluationQuestionnaireTemplate.EvaluationQuestionnaireTemplateBuilder<?, ?> buildEvaluationQuestionnaire(JSONObject rootObj) {
+        return EvaluationQuestionnaireTemplate.builder()
                 .answerOptions(
                         rootObj.getJSONArray("answer_options").toList().stream().map(Object::toString).toList())
                 .questions(

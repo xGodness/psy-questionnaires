@@ -1,16 +1,15 @@
-package ru.xgodness.endpoint.questionnaire.model;
+package ru.xgodness.endpoint.questionnaire.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
+import ru.xgodness.endpoint.questionnaire.model.KeyRange;
+import ru.xgodness.endpoint.questionnaire.model.QuestionnaireType;
 
 import java.util.List;
 
 @Getter
 @SuperBuilder
-@AllArgsConstructor
-public abstract class Questionnaire {
-    private long id;
+public abstract class QuestionnaireTemplate {
     private String name;
     private QuestionnaireType type;
     private String displayName;
