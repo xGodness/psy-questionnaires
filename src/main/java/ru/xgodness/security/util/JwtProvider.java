@@ -9,8 +9,8 @@ import io.jsonwebtoken.security.Keys;
 import lombok.NonNull;
 import lombok.extern.java.Log;
 import org.springframework.stereotype.Component;
+import ru.xgodness.endpoint.user.exception.AuthException;
 import ru.xgodness.endpoint.user.model.User;
-import ru.xgodness.exception.AuthException;
 
 import javax.crypto.SecretKey;
 import java.time.LocalDateTime;

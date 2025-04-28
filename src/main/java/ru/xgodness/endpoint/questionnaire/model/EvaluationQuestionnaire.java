@@ -2,7 +2,7 @@ package ru.xgodness.endpoint.questionnaire.model;
 
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
-import ru.xgodness.endpoint.questionnaire.dto.EvaluationQuestionnaireTemplate;
+import ru.xgodness.endpoint.questionnaire.template.EvaluationQuestionnaireTemplate;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class EvaluationQuestionnaire extends Questionnaire {
                 template.getQuestionCount(),
                 template.getAnswerCount(),
                 template.getAnswerWeights(),
-                template.getKeyRanges()
+                template.getInterpretationKeyRanges()
         );
         this.questions = template.getQuestions();
         this.answerOptions = template.getAnswerOptions();

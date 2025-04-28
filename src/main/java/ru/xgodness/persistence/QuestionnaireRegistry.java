@@ -1,14 +1,14 @@
 package ru.xgodness.persistence;
 
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.xgodness.endpoint.questionnaire.dto.EvaluationQuestionnaireTemplate;
-import ru.xgodness.endpoint.questionnaire.dto.QuestionnaireTemplate;
-import ru.xgodness.endpoint.questionnaire.dto.SelectionQuestionnaireTemplate;
+import ru.xgodness.endpoint.questionnaire.dto.QuestionnaireForm;
 import ru.xgodness.endpoint.questionnaire.model.EvaluationQuestionnaire;
 import ru.xgodness.endpoint.questionnaire.model.Questionnaire;
 import ru.xgodness.endpoint.questionnaire.model.SelectionQuestionnaire;
+import ru.xgodness.endpoint.questionnaire.template.EvaluationQuestionnaireTemplate;
+import ru.xgodness.endpoint.questionnaire.template.QuestionnaireTemplate;
+import ru.xgodness.endpoint.questionnaire.template.SelectionQuestionnaireTemplate;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,13 +22,29 @@ import java.util.Map;
 @Component
 public class QuestionnaireRegistry {
 
-    private static final String INSERT_INTO_QUESTIONNAIRE_TABLE_QUERY = "INSERT INTO questionnaire (name, display_name) VALUES (?, ?) RETURNING id;";
+    private static final String INSERT_INTO_QUESTIONNAIRE_TABLE_QUERY = """
+            WITH
+            sel AS (
+                SELECT id
+                FROM questionnaire
+                WHERE name = ?
+            ),
+            ins AS (
+                INSERT INTO questionnaire (name, display_name)
+                SELECT ?, ?
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM sel
+                )
+                RETURNING id
+            )
+            SELECT id FROM ins UNION ALL SELECT id FROM sel;
+            """;
 
     private final Connection transactionConnection;
 
     private final Map<Long, Questionnaire> registeredQuestionnaires = new HashMap<>();
+    private final Map<Long, QuestionnaireForm> questionnaireForms = new HashMap<>();
 
-    @Autowired
     public QuestionnaireRegistry(DatabaseManager databaseManager) throws SQLException {
         transactionConnection = databaseManager.initializeConnection();
         transactionConnection.setAutoCommit(false);
@@ -40,7 +56,8 @@ public class QuestionnaireRegistry {
         try {
             PreparedStatement statement = transactionConnection.prepareStatement(INSERT_INTO_QUESTIONNAIRE_TABLE_QUERY);
             statement.setString(1, template.getName());
-            statement.setString(2, template.getDisplayName());
+            statement.setString(2, template.getName());
+            statement.setString(3, template.getDisplayName());
             ResultSet rs = statement.executeQuery();
 
             String ddlSql = DynamicMigrationDDLBuilder.buildCreateTableForQuestionnaire(template).formatted(template.getName());
@@ -64,6 +81,7 @@ public class QuestionnaireRegistry {
         };
 
         registeredQuestionnaires.put(questionnaire.getId(), questionnaire);
+        questionnaireForms.put(questionnaire.getId(), new QuestionnaireForm(questionnaire));
     }
 
     public Questionnaire getQuestionnaire(long id) {
@@ -72,6 +90,10 @@ public class QuestionnaireRegistry {
 
     public Collection<Questionnaire> getAllQuestionnaires() {
         return registeredQuestionnaires.values();
+    }
+
+    public QuestionnaireForm getQuestionnaireForm(long id) {
+        return questionnaireForms.get(id);
     }
 
 }

@@ -33,6 +33,6 @@ public class StaticMigrationDDLProvider {
 
     @SneakyThrows
     public static String getDropAllQuery() {
-        return Files.readString(Path.of(MIGRATIONS_DIR_PATH + "/drop/drop_all.sql"));
+        return Files.readString(Path.of(MIGRATIONS_DIR_PATH + "/drop/drop_all_static.sql"));
     }
 }

@@ -2,11 +2,12 @@ package ru.xgodness.util;
 
 import lombok.extern.java.Log;
 import org.springframework.stereotype.Component;
-import ru.xgodness.exception.ValidationException;
 import ru.xgodness.endpoint.user.model.Role;
+import ru.xgodness.util.exception.ValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Log
 @Component
@@ -61,32 +62,34 @@ public class ValidationUtils {
             return this;
         }
 
-        // TODO: remove
-        @Deprecated
-        public FieldValidator stringNotEmpty(String field, String fieldName) {
-            if (field == null || field.isEmpty())
-                errorMessages.add("Поле %s не может быть пустым".formatted(fieldName));
+        public FieldValidator clientUsernameNotEmpty(String clientUsername) {
+            if (clientUsername == null || clientUsername.isBlank())
+                errorMessages.add("Не указано имя пользователя клиента");
+            return this;
+        }
+
+        public FieldValidator answerUpdates(Map<Integer, Integer> answerUpdates, int questionCount, int answerCount) {
+            if (answerUpdates == null) {
+                errorMessages.add("Ответы на вопросы не указаны");
+                return this;
+            }
+
+            Integer key, value;
+            for (var entry : answerUpdates.entrySet()) {
+                key = entry.getKey();
+                value = entry.getValue();
+                if (key == null || value == null)
+                    continue;
+
+                if (key <= 0 || key > questionCount)
+                    errorMessages.add("Неверный номер вопроса: %d".formatted(key));
+
+                if (value <= 0 || value > answerCount)
+                    errorMessages.add("Неверный номер варианта ответа: %d".formatted(value));
+            }
+
             return this;
         }
     }
 
-    // TODO: adapt it somehow or remove
-//    public static class PersistenceValidator {
-//        private final UserRepository userRepository;
-//
-//        @Autowired
-//        public PersistenceValidator(UserRepository userRepository) {
-//            this.userRepository = userRepository;
-//        }
-//
-//        public void userShouldExist(String username) {
-//            if (!userRepository.existsByUsername(username))
-//                throw new UsernameNotFoundException(username);
-//        }
-//
-//        public void userShouldNotExists(String username) {
-//            if (userRepository.existsByUsername(username))
-//                throw new UsernameAlreadyTakenException(username);
-//        }
-//    }
 }

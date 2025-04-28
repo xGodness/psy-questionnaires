@@ -2,7 +2,7 @@ package ru.xgodness.persistence;
 
 import lombok.Getter;
 import lombok.extern.java.Log;
-import ru.xgodness.exception.SQLExecutionException;
+import ru.xgodness.persistence.exception.SQLExecutionException;
 
 import java.sql.Connection;
 import java.sql.SQLException;

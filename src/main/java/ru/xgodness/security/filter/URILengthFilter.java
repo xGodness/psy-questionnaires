@@ -4,7 +4,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.java.Log;
 import org.springframework.stereotype.Component;
-import ru.xgodness.exception.URITooLongException;
+import ru.xgodness.security.exception.URITooLongException;
 
 import java.io.IOException;
 

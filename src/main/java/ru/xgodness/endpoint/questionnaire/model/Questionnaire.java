@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -18,5 +19,21 @@ public abstract class Questionnaire {
     private int questionCount;
     private int answerCount;
     private List<Integer> answerWeights;
-    private List<KeyRange> keyRanges;
+    private List<InterpretationKeyRange> interpretationKeyRanges;
+
+    public int calculateResultSum(Collection<Integer> answers) {
+        int resultSum = 0;
+        for (var value : answers)
+            resultSum += answerWeights.get(value - 1);
+        return resultSum;
+    }
+
+    public String interpreterResult(int resultSum) {
+        for (var keyRange : interpretationKeyRanges) {
+            if (keyRange.getMin() <= resultSum && resultSum <= keyRange.getMax())
+                return keyRange.getInterpretation();
+        }
+
+        throw new IllegalStateException("Result sum does not fit in questionnaire key range");
+    }
 }

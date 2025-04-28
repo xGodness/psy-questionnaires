@@ -20,13 +20,13 @@ public class JwtProviderTest {
     private final User user = new User("user", "password", "salt", Role.CLIENT);
 
     @Test
-    void generateAccessToken_validate_shouldNotThrow() {
+    public void generateAccessToken_validate_shouldNotThrow() {
         String accessToken = jwtProvider.generateAccessToken(user);
         assertDoesNotThrow(() -> jwtProvider.validateAccessToken(accessToken));
     }
 
     @Test
-    void generateRefreshToken_validate_shouldNotThrow() {
+    public void generateRefreshToken_validate_shouldNotThrow() {
         String refreshToken = jwtProvider.generateRefreshToken(user);
         assertDoesNotThrow(() -> jwtProvider.validateRefreshToken(refreshToken));
     }

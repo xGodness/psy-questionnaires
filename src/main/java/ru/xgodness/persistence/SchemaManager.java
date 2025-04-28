@@ -1,12 +1,11 @@
 package ru.xgodness.persistence;
 
 import jakarta.annotation.PreDestroy;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import ru.xgodness.endpoint.questionnaire.QuestionnaireTemplateBuilder;
+import ru.xgodness.endpoint.questionnaire.template.QuestionnaireTemplateBuilder;
 
 @Component
 public class SchemaManager {
@@ -15,7 +14,6 @@ public class SchemaManager {
     private final QuestionnaireRegistry questionnaireRegistry;
     private final boolean isDropTablesOnShutdown;
 
-    @Autowired
     public SchemaManager(
             DatabaseManager databaseManager,
             QuestionnaireRegistry questionnaireRegistry,

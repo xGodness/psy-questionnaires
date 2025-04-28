@@ -1,6 +1,5 @@
 package ru.xgodness.endpoint.user.repository;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import ru.xgodness.endpoint.user.model.Role;
 import ru.xgodness.endpoint.user.model.User;
@@ -15,12 +14,9 @@ import java.util.Optional;
 @Repository
 public class UserRepository extends JdbcRepository {
 
-    @Autowired
     public UserRepository(DatabaseManager databaseManager) {
         super(databaseManager);
     }
-
-    // TODO: should I use @NonNull from lombok to generate checks here? or just validate externally?
 
     public Optional<User> findByUsername(String username) {
         try (var statement = super.getConnection().prepareStatement(
@@ -68,7 +64,7 @@ public class UserRepository extends JdbcRepository {
 
     public boolean existsByUsername(String username) {
         try (var statement = super.getConnection().prepareStatement(
-                "SELECT * FROM app_user WHERE username = ?;"
+                "SELECT 1 FROM app_user WHERE username = ?;"
         )) {
             statement.setString(1, username);
             ResultSet rs = statement.executeQuery();
@@ -81,7 +77,7 @@ public class UserRepository extends JdbcRepository {
 
     public boolean existsByUsernameAndRole(String username, Role role) {
         try (var statement = super.getConnection().prepareStatement(
-                "SELECT * FROM app_user WHERE username = ? AND role = ?;"
+                "SELECT 1 FROM app_user WHERE username = ? AND role = ?;"
         )) {
             statement.setString(1, username);
             statement.setObject(2, role, Types.OTHER);

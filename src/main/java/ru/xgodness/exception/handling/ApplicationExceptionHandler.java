@@ -14,8 +14,12 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
-import ru.xgodness.exception.*;
+import ru.xgodness.endpoint.questionnaire.exception.*;
+import ru.xgodness.endpoint.user.exception.*;
 import ru.xgodness.exception.dto.ErrorMessages;
+import ru.xgodness.persistence.exception.SQLExecutionException;
+import ru.xgodness.security.exception.URITooLongException;
+import ru.xgodness.util.exception.ValidationException;
 
 @Log
 @ControllerAdvice
@@ -91,6 +95,30 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         );
     }
 
+    @ExceptionHandler(value = AssignmentAlreadyExistsException.class)
+    protected ResponseEntity<Object> handle(AssignmentAlreadyExistsException ex, WebRequest request) {
+        log.info("Caught AssignmentAlreadyExistsException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
+                new HttpHeaders(),
+                HttpStatus.CONFLICT,
+                request
+        );
+    }
+
+    @ExceptionHandler(value = MissingAnswerException.class)
+    protected ResponseEntity<Object> handle(MissingAnswerException ex, WebRequest request) {
+        log.info("Caught MissingAnswerException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
+                new HttpHeaders(),
+                HttpStatus.CONFLICT,
+                request
+        );
+    }
+
     @ExceptionHandler(value = UserNotFoundException.class)
     protected ResponseEntity<Object> handle(UserNotFoundException ex, WebRequest request) {
         log.info("Caught UsernameNotFoundException: " + ex.getMessage());
@@ -115,12 +143,72 @@ public class ApplicationExceptionHandler extends ResponseEntityExceptionHandler 
         );
     }
 
+    @ExceptionHandler(value = BindNotFoundException.class)
+    protected ResponseEntity<Object> handle(BindNotFoundException ex, WebRequest request) {
+        log.info("Caught BindNotFoundException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
+                new HttpHeaders(),
+                HttpStatus.NOT_FOUND,
+                request
+        );
+    }
+
+    @ExceptionHandler(value = QuestionnaireNotFoundException.class)
+    protected ResponseEntity<Object> handle(QuestionnaireNotFoundException ex, WebRequest request) {
+        log.info("Caught QuestionnaireNotFoundException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
+                new HttpHeaders(),
+                HttpStatus.NOT_FOUND,
+                request
+        );
+    }
+
+    @ExceptionHandler(value = AssignmentNotFoundException.class)
+    protected ResponseEntity<Object> handle(AssignmentNotFoundException ex, WebRequest request) {
+        log.info("Caught AssignmentNotFoundException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
+                new HttpHeaders(),
+                HttpStatus.NOT_FOUND,
+                request
+        );
+    }
+
+    @ExceptionHandler(value = CompletionNotStartedException.class)
+    protected ResponseEntity<Object> handle(CompletionNotStartedException ex, WebRequest request) {
+        log.info("Caught CompletionNotStartedException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
+                new HttpHeaders(),
+                HttpStatus.NOT_FOUND,
+                request
+        );
+    }
+
     @ExceptionHandler(value = AuthorizationDeniedException.class)
     protected ResponseEntity<Object> handle(AuthorizationDeniedException ex, WebRequest request) {
         log.info("Caught AuthorizationDeniedException: " + ex.getMessage());
         return super.handleExceptionInternal(
                 ex,
                 new ErrorMessages("Доступ запрещен"),
+                new HttpHeaders(),
+                HttpStatus.FORBIDDEN,
+                request
+        );
+    }
+
+    @ExceptionHandler(value = AccessToQuestionnaireDeniedException.class)
+    protected ResponseEntity<Object> handle(AccessToQuestionnaireDeniedException ex, WebRequest request) {
+        log.info("Caught AccessToQuestionnaireDeniedException: " + ex.getMessage());
+        return super.handleExceptionInternal(
+                ex,
+                ex.getErrorMessages(),
                 new HttpHeaders(),
                 HttpStatus.FORBIDDEN,
                 request

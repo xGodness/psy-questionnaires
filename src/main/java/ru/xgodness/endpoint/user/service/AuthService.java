@@ -9,11 +9,11 @@ import org.springframework.stereotype.Service;
 import ru.xgodness.endpoint.user.dto.JwtResponse;
 import ru.xgodness.endpoint.user.dto.LoginRequest;
 import ru.xgodness.endpoint.user.dto.RegisterRequest;
+import ru.xgodness.endpoint.user.exception.AuthException;
+import ru.xgodness.endpoint.user.exception.UsernameAlreadyTakenException;
 import ru.xgodness.endpoint.user.model.Role;
 import ru.xgodness.endpoint.user.model.User;
 import ru.xgodness.endpoint.user.repository.UserRepository;
-import ru.xgodness.exception.AuthException;
-import ru.xgodness.exception.UsernameAlreadyTakenException;
 import ru.xgodness.security.util.JwtProvider;
 import ru.xgodness.util.ValidationUtils;
 
