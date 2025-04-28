@@ -1,5 +1,6 @@
 package ru.xgodness.endpoint.questionnaire.repository;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import ru.xgodness.endpoint.questionnaire.dto.QuestionnaireAnswersState;
 import ru.xgodness.endpoint.questionnaire.model.QuestionnaireCompletionState;
@@ -14,16 +15,20 @@ import java.util.*;
 @Repository
 public class QuestionnaireCompletionRepository extends JdbcRepository {
 
-    private static final String QUESTIONNAIRE_RESULT_TABLE_SUFFIX = "_result";
+    private final String questionnaireResultTableSuffix;
 
-    public QuestionnaireCompletionRepository(DatabaseManager databaseManager) {
+    public QuestionnaireCompletionRepository(
+            DatabaseManager databaseManager,
+            @Value("${application.questionnaire.result-table-suffix}") String questionnaireResultTableSuffix
+    ) {
         super(databaseManager);
+        this.questionnaireResultTableSuffix = questionnaireResultTableSuffix;
     }
 
     public QuestionnaireAnswersState saveTransactional(Connection transactionConnection, String clientUsername, String questionnaireName, int questionCount) throws SQLException {
         try (var statement = transactionConnection.prepareStatement(
                 "INSERT INTO %s (client_username) VALUES (?) RETURNING *;"
-                        .formatted(questionnaireName + QUESTIONNAIRE_RESULT_TABLE_SUFFIX)
+                        .formatted(questionnaireName + questionnaireResultTableSuffix)
         )) {
             statement.setString(1, clientUsername);
             ResultSet rs = statement.executeQuery();
@@ -33,7 +38,7 @@ public class QuestionnaireCompletionRepository extends JdbcRepository {
     }
 
     public QuestionnaireAnswersState update(String clientUsername, String questionnaireName, int questionCount, Map<Integer, Integer> questionUpdates) {
-        String query = "UPDATE %s SET ".formatted(questionnaireName + QUESTIONNAIRE_RESULT_TABLE_SUFFIX);
+        String query = "UPDATE %s SET ".formatted(questionnaireName + questionnaireResultTableSuffix);
 
         StringJoiner updates = new StringJoiner(", ");
         questionUpdates.entrySet().stream()
@@ -56,7 +61,7 @@ public class QuestionnaireCompletionRepository extends JdbcRepository {
     public Optional<QuestionnaireCompletionState> findNotCompletedByClientUsername(String clientUsername, String questionnaireName, int questionCount) {
         try (var statement = super.getConnection().prepareStatement(
                 "SELECT * FROM %s WHERE client_username = ? AND is_completed = false;"
-                        .formatted(questionnaireName + QUESTIONNAIRE_RESULT_TABLE_SUFFIX)
+                        .formatted(questionnaireName + questionnaireResultTableSuffix)
         )) {
             statement.setString(1, clientUsername);
             ResultSet rs = statement.executeQuery();
@@ -71,7 +76,7 @@ public class QuestionnaireCompletionRepository extends JdbcRepository {
     public boolean complete(String clientUsername, String questionnaireName, int resultSum, String resultInterpretation) {
         try (var statement = super.getConnection().prepareStatement(
                 "UPDATE %s SET is_completed = true, completion_date = now(), result_sum = ?, result_interpretation = ? WHERE client_username = ? AND is_completed = false;"
-                        .formatted(questionnaireName + QUESTIONNAIRE_RESULT_TABLE_SUFFIX)
+                        .formatted(questionnaireName + questionnaireResultTableSuffix)
         )) {
             statement.setInt(1, resultSum);
             statement.setString(2, resultInterpretation);
@@ -86,7 +91,7 @@ public class QuestionnaireCompletionRepository extends JdbcRepository {
     public boolean existsNotCompletedByClientUsername(String clientUsername, String questionnaireName) {
         try (var statement = super.getConnection().prepareStatement(
                 "SELECT 1 FROM %s WHERE client_username = ? AND is_completed = false;"
-                        .formatted(questionnaireName + QUESTIONNAIRE_RESULT_TABLE_SUFFIX)
+                        .formatted(questionnaireName + questionnaireResultTableSuffix)
         )) {
             statement.setString(1, clientUsername);
             ResultSet rs = statement.executeQuery();
@@ -101,7 +106,7 @@ public class QuestionnaireCompletionRepository extends JdbcRepository {
     public List<QuestionnaireCompletionState> findAllCompletedByClientUsername(String clientUsername, String questionnaireName, int questionCount) {
         try (var statement = super.getConnection().prepareStatement(
                 "SELECT * FROM %s WHERE client_username = ? AND is_completed = true ORDER BY completion_date DESC;"
-                        .formatted(questionnaireName + QUESTIONNAIRE_RESULT_TABLE_SUFFIX)
+                        .formatted(questionnaireName + questionnaireResultTableSuffix)
         )) {
             statement.setString(1, clientUsername);
             ResultSet rs = statement.executeQuery();

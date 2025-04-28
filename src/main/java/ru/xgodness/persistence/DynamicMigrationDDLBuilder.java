@@ -1,15 +1,24 @@
 package ru.xgodness.persistence;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import ru.xgodness.endpoint.questionnaire.model.Questionnaire;
 import ru.xgodness.endpoint.questionnaire.template.QuestionnaireTemplate;
 
 import java.util.StringJoiner;
 
+@Component
 public class DynamicMigrationDDLBuilder {
 
-    private static final String QUESTIONNAIRE_RESULT_TABLE_SUFFIX = "_result";
+    private final String questionnaireResultTableSuffix;
 
-    public static String buildCreateTableForQuestionnaire(QuestionnaireTemplate template) {
+    public DynamicMigrationDDLBuilder(
+            @Value("${application.questionnaire.result-table-suffix}") String questionnaireResultTableSuffix
+    ) {
+        this.questionnaireResultTableSuffix = questionnaireResultTableSuffix;
+    }
+
+    public String buildCreateTableForQuestionnaire(QuestionnaireTemplate template) {
         StringJoiner joiner = new StringJoiner(", ");
 
         joiner.add(("CREATE TABLE IF NOT EXISTS %s (" +
@@ -19,7 +28,7 @@ public class DynamicMigrationDDLBuilder {
                 "completion_date TIMESTAMP DEFAULT NULL, " +
                 "result_sum integer DEFAULT NULL, " +
                 "result_interpretation text DEFAULT NULL")
-                .formatted(template.getName() + QUESTIONNAIRE_RESULT_TABLE_SUFFIX));
+                .formatted(template.getName() + questionnaireResultTableSuffix));
 
         int questionCount = template.getQuestionCount();
         int answerCount = template.getAnswerCount();
@@ -32,8 +41,8 @@ public class DynamicMigrationDDLBuilder {
         return joiner + ");";
     }
 
-    public static String buildDropTableForQuestionnaire(Questionnaire questionnaire) {
-        return "DROP TABLE IF EXISTS %s CASCADE;".formatted(questionnaire.getName() + QUESTIONNAIRE_RESULT_TABLE_SUFFIX);
+    public String buildDropTableForQuestionnaire(Questionnaire questionnaire) {
+        return "DROP TABLE IF EXISTS %s CASCADE;".formatted(questionnaire.getName() + questionnaireResultTableSuffix);
     }
 
 }

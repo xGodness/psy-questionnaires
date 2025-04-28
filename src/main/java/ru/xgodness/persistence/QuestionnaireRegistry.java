@@ -22,6 +22,8 @@ import java.util.Map;
 @Component
 public class QuestionnaireRegistry {
 
+    private final DynamicMigrationDDLBuilder dynamicMigrationDDLBuilder;
+
     private static final String INSERT_INTO_QUESTIONNAIRE_TABLE_QUERY = """
             WITH
             sel AS (
@@ -45,7 +47,8 @@ public class QuestionnaireRegistry {
     private final Map<Long, Questionnaire> registeredQuestionnaires = new HashMap<>();
     private final Map<Long, QuestionnaireForm> questionnaireForms = new HashMap<>();
 
-    public QuestionnaireRegistry(DatabaseManager databaseManager) throws SQLException {
+    public QuestionnaireRegistry(DatabaseManager databaseManager, DynamicMigrationDDLBuilder dynamicMigrationDDLBuilder) throws SQLException {
+        this.dynamicMigrationDDLBuilder = dynamicMigrationDDLBuilder;
         transactionConnection = databaseManager.initializeConnection();
         transactionConnection.setAutoCommit(false);
     }
@@ -60,7 +63,7 @@ public class QuestionnaireRegistry {
             statement.setString(3, template.getDisplayName());
             ResultSet rs = statement.executeQuery();
 
-            String ddlSql = DynamicMigrationDDLBuilder.buildCreateTableForQuestionnaire(template).formatted(template.getName());
+            String ddlSql = dynamicMigrationDDLBuilder.buildCreateTableForQuestionnaire(template).formatted(template.getName());
 
             statement = transactionConnection.prepareStatement(ddlSql);
             statement.executeUpdate();

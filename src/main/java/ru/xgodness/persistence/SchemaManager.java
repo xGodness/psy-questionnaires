@@ -12,33 +12,42 @@ public class SchemaManager {
 
     private final DatabaseManager databaseManager;
     private final QuestionnaireRegistry questionnaireRegistry;
+    private final QuestionnaireTemplateBuilder templateBuilder;
+    private final DynamicMigrationDDLBuilder dynamicMigrationDDLBuilder;
+    private final StaticMigrationDDLProvider staticMigrationDDLProvider;
     private final boolean isDropTablesOnShutdown;
 
     public SchemaManager(
             DatabaseManager databaseManager,
             QuestionnaireRegistry questionnaireRegistry,
+            QuestionnaireTemplateBuilder templateBuilder,
+            DynamicMigrationDDLBuilder dynamicMigrationDDLBuilder,
+            StaticMigrationDDLProvider staticMigrationDDLProvider,
             @Value("${development.drop-tables-on-shutdown}") String isDropTablesOnShutdown
     ) {
         this.databaseManager = databaseManager;
         this.questionnaireRegistry = questionnaireRegistry;
+        this.templateBuilder = templateBuilder;
+        this.dynamicMigrationDDLBuilder = dynamicMigrationDDLBuilder;
+        this.staticMigrationDDLProvider = staticMigrationDDLProvider;
         this.isDropTablesOnShutdown = Boolean.parseBoolean(isDropTablesOnShutdown);
     }
 
     @EventListener(ApplicationStartedEvent.class)
     public void populate() {
-        StaticMigrationDDLProvider.getInitQueries().forEach(databaseManager::executeQuery);
-        QuestionnaireTemplateBuilder.getTemplates().forEach(questionnaireRegistry::register);
+        staticMigrationDDLProvider.getInitQueries().forEach(databaseManager::executeQuery);
+        templateBuilder.getTemplates().forEach(questionnaireRegistry::register);
     }
 
     @PreDestroy
     private void shutdown() {
         if (isDropTablesOnShutdown) {
             questionnaireRegistry.getAllQuestionnaires().forEach(questionnaire -> {
-                String dropQuery = DynamicMigrationDDLBuilder.buildDropTableForQuestionnaire(questionnaire);
+                String dropQuery = dynamicMigrationDDLBuilder.buildDropTableForQuestionnaire(questionnaire);
                 databaseManager.executeQuery(dropQuery);
             });
 
-            databaseManager.executeQuery(StaticMigrationDDLProvider.getDropAllQuery());
+            databaseManager.executeQuery(staticMigrationDDLProvider.getDropAllQuery());
         }
     }
 

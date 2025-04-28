@@ -5,6 +5,8 @@ import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import ru.xgodness.endpoint.questionnaire.model.InterpretationKeyRange;
 import ru.xgodness.endpoint.questionnaire.model.QuestionnaireType;
 import ru.xgodness.exception.ApplicationException;
@@ -22,14 +24,21 @@ import java.util.stream.Stream;
 import static java.util.Objects.requireNonNull;
 
 @Log
+@Component
 public class QuestionnaireTemplateBuilder {
-    private static final String QUESTIONNAIRE_FILE_SUFFIX = ".questionnaire.json";
-    private static final String QUESTIONNAIRES_DIR_PATH = "src/main/resources/questionnaires";
+    private final String questionnaireFileSuffix;
+    private final String questionnairesDirPath;
 
     @Getter
-    private static final Set<QuestionnaireTemplate> templates = new HashSet<>();
+    private final Set<QuestionnaireTemplate> templates = new HashSet<>();
 
-    static {
+    public QuestionnaireTemplateBuilder(
+            @Value("${application.questionnaire.dir-path}") String questionnairesDirPath,
+            @Value("${application.questionnaire.file-suffix}") String questionnaireFileSuffix
+    ) {
+        this.questionnairesDirPath = questionnairesDirPath;
+        this.questionnaireFileSuffix = questionnaireFileSuffix;
+
         try {
             buildTemplates();
         } catch (Exception ex) {
@@ -39,17 +48,17 @@ public class QuestionnaireTemplateBuilder {
     }
 
     @SneakyThrows
-    private static void buildTemplates() {
-        try (Stream<Path> paths = Files.walk(Paths.get(QUESTIONNAIRES_DIR_PATH))) {
+    private void buildTemplates() {
+        try (Stream<Path> paths = Files.walk(Paths.get(questionnairesDirPath))) {
             paths
                     .filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(QUESTIONNAIRE_FILE_SUFFIX))
-                    .forEach(QuestionnaireTemplateBuilder::parseTemplate);
+                    .filter(path -> path.toString().endsWith(questionnaireFileSuffix))
+                    .forEach(this::parseTemplate);
         }
     }
 
     @SneakyThrows(IOException.class)
-    private static void parseTemplate(Path questionnaireFilePath) {
+    private void parseTemplate(Path questionnaireFilePath) {
         String jsonString = Files.readString(questionnaireFilePath);
         JSONObject rootObj = new JSONObject(jsonString);
 
@@ -95,7 +104,7 @@ public class QuestionnaireTemplateBuilder {
         );
     }
 
-    private static SelectionQuestionnaireTemplate.SelectionQuestionnaireTemplateBuilder<?, ?> buildSelectionQuestionnaire(JSONObject rootObj) {
+    private SelectionQuestionnaireTemplate.SelectionQuestionnaireTemplateBuilder<?, ?> buildSelectionQuestionnaire(JSONObject rootObj) {
         List<List<String>> answerOptions = new ArrayList<>();
         JSONArray jsonArray = rootObj.getJSONArray("answer_options");
         for (var i = 0; i < jsonArray.length(); i++)
@@ -104,7 +113,7 @@ public class QuestionnaireTemplateBuilder {
         return SelectionQuestionnaireTemplate.builder().answerOptions(answerOptions);
     }
 
-    private static EvaluationQuestionnaireTemplate.EvaluationQuestionnaireTemplateBuilder<?, ?> buildEvaluationQuestionnaire(JSONObject rootObj) {
+    private EvaluationQuestionnaireTemplate.EvaluationQuestionnaireTemplateBuilder<?, ?> buildEvaluationQuestionnaire(JSONObject rootObj) {
         return EvaluationQuestionnaireTemplate.builder()
                 .answerOptions(
                         rootObj.getJSONArray("answer_options").toList().stream().map(Object::toString).toList())

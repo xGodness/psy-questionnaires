@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import ru.xgodness.exception.dto.ErrorMessages;
@@ -16,7 +17,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.*;
-import static ru.xgodness.e2e.TestUtils.*;
+import static ru.xgodness.e2e.E2ETestUtils.*;
 
 
 @SpringBootTest(
@@ -24,6 +25,7 @@ import static ru.xgodness.e2e.TestUtils.*;
 )
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestPropertySource(properties = "application.questionnaire.dir-path=src/test/resources/questionnaires")
 @Log
 public class AuthTest {
 
@@ -62,9 +64,7 @@ public class AuthTest {
 
     @AfterAll
     public void truncate() {
-        databaseManager.executeQuery("""
-                TRUNCATE TABLE app_user, assignment, client_specialist RESTART IDENTITY CASCADE;
-                """);
+        databaseManager.executeQuery(TRUNCATE_QUERY);
     }
 
 

@@ -5,8 +5,8 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.TestPropertySource;
 import ru.xgodness.exception.dto.ErrorMessages;
 import ru.xgodness.persistence.DatabaseManager;
 
@@ -16,21 +16,24 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.HttpStatus.*;
-import static ru.xgodness.e2e.TestUtils.*;
+import static ru.xgodness.e2e.E2ETestUtils.*;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestPropertySource(properties = "application.questionnaire.dir-path=src/test/resources/questionnaires")
 @Log
-public class BindRequestsTest {
+public class BindRequestTest {
 
     @Autowired
     private DatabaseManager databaseManager;
 
     @Autowired
     private TestRestTemplate restTemplate;
+    private static final Map<String, String> accessTokenMap = new HashMap<>();
+    private TestContext context;
 
     private static final String nonexistentUsername = "nonexistent";
     private static final String password = "password123";
@@ -45,30 +48,26 @@ public class BindRequestsTest {
             clientB
     );
 
-    private static final Map<String, String> accessTokenMap = new HashMap<>();
-
     @BeforeAll
     public void setUp() throws Exception {
+        context = new TestContext(accessTokenMap, restTemplate);
+
         for (var username : usernames) {
-            registerUser(username);
-            loginUser(username);
+            registerUser(context, username, password);
+            loginUser(context, username, password);
         }
     }
 
     @AfterAll
     public void truncate() {
-        databaseManager.executeQuery("""
-                TRUNCATE TABLE app_user, assignment, client_specialist RESTART IDENTITY CASCADE;
-                """);
+        databaseManager.executeQuery(TRUNCATE_QUERY);
     }
 
 
     @Order(1)
     @Test
     public void testCreateBindRequest_nonexistentSpecialist_404() throws Exception {
-        ResponseEntity<String> entity = requestBind(clientA, nonexistentUsername);
-        log.info(entity.toString());
-
+        ResponseEntity<String> entity = requestBind(context, clientA, nonexistentUsername);
         assertEquals(NOT_FOUND, entity.getStatusCode());
 
         ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
@@ -81,10 +80,7 @@ public class BindRequestsTest {
         ResponseEntity<String> entity;
 
         for (var client : List.of(clientA, clientB)) {
-            entity = requestBind(client, specialistA);
-
-            log.info(entity.toString());
-
+            entity = requestBind(context, client, specialistA);
             assertEquals(NO_CONTENT, entity.getStatusCode());
             assertNull(entity.getBody());
         }
@@ -93,10 +89,7 @@ public class BindRequestsTest {
     @Order(3)
     @Test
     public void testCreateBindRequests_duplicateRequest_409() throws Exception {
-        ResponseEntity<String> entity = requestBind(clientA, specialistA);
-
-        log.info(entity.toString());
-
+        ResponseEntity<String> entity = requestBind(context, clientA, specialistA);
         assertEquals(CONFLICT, entity.getStatusCode());
 
         ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
@@ -106,16 +99,14 @@ public class BindRequestsTest {
     @Order(4)
     @Test
     public void testGetPendingAndApprovedBinds_200() throws Exception {
-        ResponseEntity<String> entity = getPendingBinds(specialistA);
-        log.info(entity.toString());
-
+        ResponseEntity<String> entity = getPendingBinds(context, specialistA);
         assertEquals(OK, entity.getStatusCode());
 
         ClientUsernameList pending = mapStringToClientUsernameList(entity.getBody());
         assertEquals(List.of(clientA, clientB), pending.getClients());
 
-        entity = getApprovedBinds(specialistA);
-        log.info(entity.toString());
+        entity = getApprovedBinds(context, specialistA);
+
 
         assertEquals(OK, entity.getStatusCode());
 
@@ -126,9 +117,7 @@ public class BindRequestsTest {
     @Order(5)
     @Test
     public void testApprovePendingBind_nonexistentClient_404() throws Exception {
-        ResponseEntity<String> entity = approveBindRequest(specialistA, nonexistentUsername);
-        log.info(entity.toString());
-
+        ResponseEntity<String> entity = approveBindRequest(context, specialistA, nonexistentUsername);
         assertEquals(NOT_FOUND, entity.getStatusCode());
 
         ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
@@ -138,9 +127,7 @@ public class BindRequestsTest {
     @Order(6)
     @Test
     public void testApprovePendingBind_validClient_204() {
-        ResponseEntity<String> entity = approveBindRequest(specialistA, clientA);
-        log.info(entity.toString());
-
+        ResponseEntity<String> entity = approveBindRequest(context, specialistA, clientA);
         assertEquals(OK, entity.getStatusCode());
 
         assertNull(entity.getBody());
@@ -149,9 +136,7 @@ public class BindRequestsTest {
     @Order(7)
     @Test
     public void testGetAllBinds_200() throws Exception {
-        ResponseEntity<String> entity = getAllBinds(specialistA);
-        log.info(entity.toString());
-
+        ResponseEntity<String> entity = getAllBinds(context, specialistA);
         assertEquals(OK, entity.getStatusCode());
 
         BindList bindList = mapStringToBindList(entity.getBody());
@@ -162,9 +147,7 @@ public class BindRequestsTest {
     @Order(8)
     @Test
     public void testDiscardPendingBind_nonexistentClient_404() throws Exception {
-        ResponseEntity<String> entity = discardBindRequest(specialistA, nonexistentUsername);
-        log.info(entity.toString());
-
+        ResponseEntity<String> entity = discardBindRequest(context, specialistA, nonexistentUsername);
         assertEquals(NOT_FOUND, entity.getStatusCode());
 
         ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
@@ -174,9 +157,7 @@ public class BindRequestsTest {
     @Order(9)
     @Test
     public void testDiscardPendingBind_validClient_204() {
-        ResponseEntity<String> entity = discardBindRequest(specialistA, clientB);
-        log.info(entity.toString());
-
+        ResponseEntity<String> entity = discardBindRequest(context, specialistA, clientB);
         assertEquals(OK, entity.getStatusCode());
         assertNull(entity.getBody());
     }
@@ -184,123 +165,17 @@ public class BindRequestsTest {
     @Order(10)
     @Test
     public void testBindsState_200() throws Exception {
-        ResponseEntity<String> entity = getPendingBinds(specialistA);
-        log.info(entity.toString());
-
+        ResponseEntity<String> entity = getPendingBinds(context, specialistA);
         assertEquals(OK, entity.getStatusCode());
 
         ClientUsernameList pending = mapStringToClientUsernameList(entity.getBody());
         assertTrue(pending.getClients().isEmpty());
 
-        entity = getApprovedBinds(specialistA);
-        log.info(entity.toString());
-
+        entity = getApprovedBinds(context, specialistA);
         assertEquals(OK, entity.getStatusCode());
 
         ClientUsernameList approved = mapStringToClientUsernameList(entity.getBody());
         assertEquals(List.of(clientA), approved.getClients());
-    }
-
-    private void registerUser(String username) {
-        ResponseEntity<String> entity = restTemplate.postForEntity(
-                REGISTER_PATH,
-                new RegisterRequest(
-                        username,
-                        password,
-                        username.startsWith("specialist") ? "SPECIALIST" : "CLIENT"
-                ),
-                String.class
-        );
-
-        log.info(entity.toString());
-
-        assert entity.getStatusCode().is2xxSuccessful();
-    }
-
-    private void loginUser(String username) throws Exception {
-        ResponseEntity<String> entity = restTemplate.postForEntity(
-                LOGIN_PATH,
-                new LoginRequest(
-                        username,
-                        password
-                ),
-                String.class
-        );
-
-        assert entity.getStatusCode().is2xxSuccessful();
-
-        JwtResponse jwtResponse = mapStringToJwtResponse(entity.getBody());
-        String accessToken = jwtResponse.getAccessToken();
-
-        assert accessToken != null;
-
-        accessTokenMap.put(username, accessToken);
-    }
-
-    private void setHeaders(String username) {
-        restTemplate.getRestTemplate().setInterceptors(
-                List.of(
-                        (request, body, execution) -> {
-                            request.getHeaders()
-                                    .add("Content-Type", MediaType.APPLICATION_JSON_VALUE);
-                            request.getHeaders()
-                                    .add("Authorization", "Bearer " + accessTokenMap.get(username));
-
-                            return execution.execute(request, body);
-                        }
-                )
-        );
-    }
-
-    private ResponseEntity<String> requestBind(String client, String specialist) {
-        setHeaders(client);
-        return restTemplate.postForEntity(
-                REQUEST_BIND_PATH + "/" + specialist,
-                null,
-                String.class
-        );
-    }
-
-    private ResponseEntity<String> approveBindRequest(String specialist, String client) {
-        setHeaders(specialist);
-        return restTemplate.postForEntity(
-                APPROVE_BIND_PATH + "/" + client,
-                null,
-                String.class
-        );
-    }
-
-    private ResponseEntity<String> discardBindRequest(String specialist, String client) {
-        setHeaders(specialist);
-        return restTemplate.postForEntity(
-                DISCARD_BIND_PATH + "/" + client,
-                null,
-                String.class
-        );
-    }
-
-    private ResponseEntity<String> getPendingBinds(String specialist) {
-        setHeaders(specialist);
-        return restTemplate.getForEntity(
-                GET_PENDING_BINDS_PATH,
-                String.class
-        );
-    }
-
-    private ResponseEntity<String> getApprovedBinds(String specialist) {
-        setHeaders(specialist);
-        return restTemplate.getForEntity(
-                GET_APPROVED_BINDS_PATH,
-                String.class
-        );
-    }
-
-    private ResponseEntity<String> getAllBinds(String specialist) {
-        setHeaders(specialist);
-        return restTemplate.getForEntity(
-                GET_ALL_BINDS_PATH,
-                String.class
-        );
     }
 
 }
