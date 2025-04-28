@@ -38,6 +38,10 @@ public class E2ETestUtils {
 
     protected static final String TRUNCATE_QUERY = "TRUNCATE TABLE app_user, assignment, client_specialist RESTART IDENTITY CASCADE;";
 
+    protected static final String password = "password123";
+    protected static final String nonexistentUsername = "nonexistent";
+    protected static final long nonexistentQuestionnaireId = 9999999L;
+
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     private final QuestionnaireRegistry registry;
@@ -100,7 +104,7 @@ public class E2ETestUtils {
         );
     }
 
-    protected static void registerUser(TestContext context, String username, String password) {
+    protected static void registerUser(TestContext context, String username) {
         ResponseEntity<String> entity = context.restTemplate.postForEntity(
                 REGISTER_PATH,
                 new RegisterRequest(
@@ -116,7 +120,7 @@ public class E2ETestUtils {
         assert entity.getStatusCode().is2xxSuccessful();
     }
 
-    protected static void loginUser(TestContext context, String username, String password) throws Exception {
+    protected static void loginUser(TestContext context, String username) throws Exception {
         ResponseEntity<String> entity = context.restTemplate.postForEntity(
                 LOGIN_PATH,
                 new LoginRequest(

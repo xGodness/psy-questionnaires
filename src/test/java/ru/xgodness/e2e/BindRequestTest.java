@@ -32,11 +32,8 @@ public class BindRequestTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
-    private static final Map<String, String> accessTokenMap = new HashMap<>();
+    private final Map<String, String> accessTokenMap = new HashMap<>();
     private TestContext context;
-
-    private static final String nonexistentUsername = "nonexistent";
-    private static final String password = "password123";
 
     private static final String specialistA = "specialistA";
     private static final String clientA = "clientA";
@@ -53,8 +50,8 @@ public class BindRequestTest {
         context = new TestContext(accessTokenMap, restTemplate);
 
         for (var username : usernames) {
-            registerUser(context, username, password);
-            loginUser(context, username, password);
+            registerUser(context, username);
+            loginUser(context, username);
         }
     }
 
