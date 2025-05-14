@@ -26,15 +26,21 @@ public class E2ETestUtils {
     protected static final String LOGIN_PATH = "/auth/login";
     protected static final String TOKEN_ACCESS_PATH = "/auth/token/access";
     protected static final String TOKEN_REFRESH_PATH = "/auth/token/refresh";
-    protected static final String REQUEST_BIND_PATH = "/bind/request";
+    protected static final String REQUEST_BIND_PATH = "/bind/%s/request";
+    protected static final String APPROVE_BIND_PATH = "/bind/%s/approve";
+    protected static final String DISCARD_BIND_PATH = "/bind/%s/discard";
     protected static final String GET_PENDING_BINDS_PATH = "/bind/get/pending";
     protected static final String GET_APPROVED_BINDS_PATH = "/bind/get/approved";
     protected static final String GET_ALL_BINDS_PATH = "/bind/get/all";
-    protected static final String APPROVE_BIND_PATH = "/bind/approve";
-    protected static final String DISCARD_BIND_PATH = "/bind/discard";
     protected static final String CREATE_ASSIGNMENT_PATH = "/assignment/create";
     protected static final String DELETE_ASSIGNMENT_PATH = "/assignment/delete";
     protected static final String LIST_ASSIGNMENTS_PATH = "/assignment/list";
+    protected static final String GET_QUESTIONNAIRE_FORM_PATH = "/questionnaire";
+    protected static final String LIST_QUESTIONNAIRES_PATH = "/questionnaire/list";
+    protected static final String GET_QUESTIONNAIRE_HISTORY_PATH = "questionnaire/history/%d";
+    protected static final String GET_QUESTIONNAIRE_COMPLETION_STATE_PATH = "questionnaire/%d/state";
+    protected static final String UPDATE_QUESTIONNAIRE_COMPLETION_STATE_PATH = "questionnaire/%d/update";
+    protected static final String COMPLETE_QUESTIONNAIRE_PATH = "questionnaire/%d/complete";
 
     protected static final String TRUNCATE_QUERY = "TRUNCATE TABLE app_user, assignment, client_specialist RESTART IDENTITY CASCADE;";
 
@@ -140,10 +146,10 @@ public class E2ETestUtils {
         context.accessTokenMap.put(username, accessToken);
     }
 
-    protected static ResponseEntity<String> requestBind(TestContext context, String client, String specialist) {
-        setHeaders(context, client);
+    protected static ResponseEntity<String> requestBind(TestContext context, String clientUsername, String specialistUsername) {
+        setHeaders(context, clientUsername);
         var result = context.restTemplate.postForEntity(
-                REQUEST_BIND_PATH + "/" + specialist,
+                REQUEST_BIND_PATH.formatted(specialistUsername),
                 null,
                 String.class
         );
@@ -152,10 +158,10 @@ public class E2ETestUtils {
         return result;
     }
 
-    protected static ResponseEntity<String> approveBindRequest(TestContext context, String specialist, String client) {
-        setHeaders(context, specialist);
+    protected static ResponseEntity<String> approveBindRequest(TestContext context, String specialistUsername, String clientUsername) {
+        setHeaders(context, specialistUsername);
         var result = context.restTemplate.postForEntity(
-                APPROVE_BIND_PATH + "/" + client,
+                APPROVE_BIND_PATH.formatted(clientUsername),
                 null,
                 String.class
         );
@@ -164,10 +170,10 @@ public class E2ETestUtils {
         return result;
     }
 
-    protected static ResponseEntity<String> discardBindRequest(TestContext context, String specialist, String client) {
-        setHeaders(context, specialist);
+    protected static ResponseEntity<String> discardBindRequest(TestContext context, String specialistUsername, String clientUsername) {
+        setHeaders(context, specialistUsername);
         var result = context.restTemplate.postForEntity(
-                DISCARD_BIND_PATH + "/" + client,
+                DISCARD_BIND_PATH.formatted(clientUsername),
                 null,
                 String.class
         );
@@ -191,8 +197,8 @@ public class E2ETestUtils {
         return result;
     }
 
-    protected static ResponseEntity<String> getPendingBinds(TestContext context, String specialist) {
-        setHeaders(context, specialist);
+    protected static ResponseEntity<String> getPendingBinds(TestContext context, String specialistUsername) {
+        setHeaders(context, specialistUsername);
         var result = context.restTemplate.getForEntity(
                 GET_PENDING_BINDS_PATH,
                 String.class
@@ -202,8 +208,8 @@ public class E2ETestUtils {
         return result;
     }
 
-    protected static ResponseEntity<String> getApprovedBinds(TestContext context, String specialist) {
-        setHeaders(context, specialist);
+    protected static ResponseEntity<String> getApprovedBinds(TestContext context, String specialistUsername) {
+        setHeaders(context, specialistUsername);
         var result = context.restTemplate.getForEntity(
                 GET_APPROVED_BINDS_PATH,
                 String.class
@@ -213,8 +219,8 @@ public class E2ETestUtils {
         return result;
     }
 
-    protected static ResponseEntity<String> getAllBinds(TestContext context, String specialist) {
-        setHeaders(context, specialist);
+    protected static ResponseEntity<String> getAllBinds(TestContext context, String specialistUsername) {
+        setHeaders(context, specialistUsername);
         var result = context.restTemplate.getForEntity(
                 GET_ALL_BINDS_PATH,
                 String.class

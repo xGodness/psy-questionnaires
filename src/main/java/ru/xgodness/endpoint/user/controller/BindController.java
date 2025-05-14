@@ -17,7 +17,7 @@ public class BindController {
     private final BindService bindService;
 
     @PreAuthorize("hasAuthority('CLIENT')")
-    @PostMapping("/request/{specialist-username}")
+    @PostMapping("/{specialist-username}/request")
     public ResponseEntity<Void> requestSpecialistBind(@PathVariable("specialist-username") String specialistUsername) {
         bindService.requestSpecialistBind(specialistUsername);
         return ResponseEntity.noContent().build();
@@ -42,14 +42,14 @@ public class BindController {
     }
 
     @PreAuthorize("hasAuthority('SPECIALIST')")
-    @PostMapping("/approve/{client-username}")
+    @PostMapping("/{client-username}/approve")
     public ResponseEntity<Void> approvePendingBind(@PathVariable("client-username") String clientUsername) {
         bindService.approvePendingBind(clientUsername);
         return ResponseEntity.ok().build();
     }
 
     @PreAuthorize("hasAuthority('SPECIALIST')")
-    @PostMapping("/discard/{client-username}")
+    @PostMapping("/{client-username}/discard")
     public ResponseEntity<Void> discardPendingBind(@PathVariable("client-username") String clientUsername) {
         bindService.discardPendingBind(clientUsername);
         return ResponseEntity.ok().build();

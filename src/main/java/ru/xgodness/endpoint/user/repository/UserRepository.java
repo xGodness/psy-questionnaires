@@ -32,21 +32,6 @@ public class UserRepository extends JdbcRepository {
         }
     }
 
-    public Optional<User> findByUsernameAndRole(String username, Role role) {
-        try (var statement = super.getConnection().prepareStatement(
-                "SELECT * FROM app_user WHERE username = ? AND role = ?;"
-        )) {
-            statement.setString(1, username);
-            statement.setObject(2, role, Types.OTHER);
-            ResultSet rs = statement.executeQuery();
-
-            return mapToUserOptional(rs);
-
-        } catch (SQLException ex) {
-            throw super.handleSQLException(ex);
-        }
-    }
-
     public boolean save(User user) {
         try (var statement = super.getConnection().prepareStatement(
                 "INSERT INTO app_user (username, passhash, salt, role) VALUES (?, ?, ?, ?);"

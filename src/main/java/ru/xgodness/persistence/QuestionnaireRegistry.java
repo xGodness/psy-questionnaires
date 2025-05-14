@@ -74,7 +74,13 @@ public class QuestionnaireRegistry {
             id = rs.getLong("id");
 
         } catch (SQLException ex) {
-            log.severe("Error while executing SQL: " + ex.getMessage());
+            try {
+                log.severe(ex.getMessage());
+                transactionConnection.rollback();
+            } catch (SQLException rollbackEx) {
+                log.severe("Could not rollback on failed transaction. SQL state: " + rollbackEx.getSQLState() + " Exception: " + rollbackEx.getMessage());
+                throw new RuntimeException(rollbackEx);
+            }
             throw new RuntimeException(ex);
         }
 

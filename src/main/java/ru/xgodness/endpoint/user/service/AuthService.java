@@ -1,7 +1,6 @@
 package ru.xgodness.endpoint.user.service;
 
 import io.jsonwebtoken.Claims;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -31,7 +30,7 @@ public class AuthService {
     private final Map<String, String> refreshStorage = new HashMap<>();
     private final JwtProvider jwtProvider;
 
-    public void register(@NonNull RegisterRequest registerRequest) {
+    public void register(RegisterRequest registerRequest) {
 
         String username = registerRequest.getUsername();
         String password = registerRequest.getPassword();
@@ -59,7 +58,7 @@ public class AuthService {
         userRepository.save(user);
     }
 
-    public JwtResponse login(@NonNull LoginRequest loginRequest) {
+    public JwtResponse login(LoginRequest loginRequest) {
 
         String username = loginRequest.getUsername();
         String password = loginRequest.getPassword();

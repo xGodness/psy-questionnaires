@@ -159,7 +159,7 @@ public class AssignmentTest {
         assertEquals(NOT_FOUND, entity.getStatusCode());
 
         ErrorMessages errorMessages = mapStringToErrorMessages(entity.getBody());
-        assertEquals(List.of("Вы не назначали клиенту %s прохождение этого опросника".formatted(clientB)), errorMessages.getMessages());
+        assertEquals(List.of("Клиенту %s не было назначено заполнение этого опросника".formatted(clientB)), errorMessages.getMessages());
     }
 
     @Order(9)

@@ -95,7 +95,6 @@
     </dependencyManagement>
 
     <build>
-
         <finalName>psy-questionnaires</finalName>
 
         <plugins>

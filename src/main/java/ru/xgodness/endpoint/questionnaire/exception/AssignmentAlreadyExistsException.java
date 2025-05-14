@@ -4,6 +4,6 @@ import ru.xgodness.exception.ApplicationException;
 
 public class AssignmentAlreadyExistsException extends ApplicationException {
     public AssignmentAlreadyExistsException(String clientUsername) {
-        super("Вы уже назначили клиенту %s прохождение этого опросника".formatted(clientUsername));
+        super("Клиенту %s уже назначено заполнение этого опросника".formatted(clientUsername));
     }
 }

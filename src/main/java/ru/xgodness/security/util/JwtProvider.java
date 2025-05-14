@@ -6,7 +6,6 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import lombok.NonNull;
 import lombok.extern.java.Log;
 import org.springframework.stereotype.Component;
 import ru.xgodness.endpoint.user.exception.AuthException;
@@ -38,7 +37,7 @@ public class JwtProvider {
         this.jwtRefreshSecret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtRefreshSecret));
     }
 
-    public String generateAccessToken(@NonNull User user) {
+    public String generateAccessToken(User user) {
         Date expiration = Date.from(
                 LocalDateTime.now()
                         .plusMinutes(ACCESS_EXPIRE_IN_MINUTES)
@@ -48,7 +47,7 @@ public class JwtProvider {
         return generateToken(user, expiration, jwtAccessSecret);
     }
 
-    public String generateRefreshToken(@NonNull User user) {
+    public String generateRefreshToken(User user) {
         Date expiration = Date.from(
                 LocalDateTime.now()
                         .plusDays(REFRESH_EXPIRE_IN_DAYS)
@@ -98,11 +97,11 @@ public class JwtProvider {
         }
     }
 
-    public Claims getAccessClaims(@NonNull String token) {
+    public Claims getAccessClaims(String token) {
         return getClaims(token, jwtAccessSecret);
     }
 
-    public Claims getRefreshClaims(@NonNull String token) {
+    public Claims getRefreshClaims(String token) {
         return getClaims(token, jwtRefreshSecret);
     }
 
