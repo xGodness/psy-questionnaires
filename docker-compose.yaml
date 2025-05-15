@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: $PG_USER
+      POSTGRES_PASSWORD: $PG_PASSWORD
+      POSTGRES_DB: $PG_DB
+    ports:
+      - "5555:5432"
+    restart: unless-stopped
+    networks:
+      - application-network
+
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    depends_on:
+      - db
+    environment:
+      PG_DSN: $PG_DSN
+      JWT_SECRET_ACCESS: $JWT_SECRET_ACCESS
+      JWT_SECRET_REFRESH: $JWT_SECRET_REFRESH
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - application-network
+
+networks:
+  application-network:
+    driver: bridge

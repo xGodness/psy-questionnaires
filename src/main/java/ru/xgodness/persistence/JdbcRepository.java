@@ -11,6 +11,7 @@ import java.sql.SQLException;
 public abstract class JdbcRepository {
     @Getter
     private final Connection connection;
+    private final SQLExecutionException sqlExecutionException = new SQLExecutionException();
 
     protected JdbcRepository(DatabaseManager databaseManager) {
         this.connection = databaseManager.getConnection();
@@ -19,6 +20,6 @@ public abstract class JdbcRepository {
     protected SQLExecutionException handleSQLException(SQLException ex) {
         log.severe("Error while executing SQL statement");
         log.severe(ex.getMessage());
-        return new SQLExecutionException();
+        return sqlExecutionException;
     }
 }

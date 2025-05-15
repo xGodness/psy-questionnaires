@@ -183,7 +183,7 @@ public class AssignmentTest {
     @Order(11)
     @Test
     public void testSpecialistListAssignments_validData_200() throws Exception {
-        ResponseEntity<String> entity = E2ETestUtils.listAssignmentsSpecialist(context, specialistA, clientA);
+        ResponseEntity<String> entity = listAssignmentsSpecialist(context, specialistA, clientA);
         assertEquals(OK, entity.getStatusCode());
 
         QuestionnaireIdentifierList questionnaireIdentifierList = mapStringToQuestionnaireIdentifierList(entity.getBody());

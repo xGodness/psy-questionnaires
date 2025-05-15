@@ -307,7 +307,7 @@
 			"name": "/bind",
 			"item": [
 				{
-					"name": "CLIENT | /request/{specialist}",
+					"name": "CLIENT | /{specialist}/request",
 					"event": [
 						{
 							"listen": "test",
@@ -370,7 +370,7 @@
 					"response": []
 				},
 				{
-					"name": "SPECIALIST | /approve/{client}",
+					"name": "SPECIALIST | /{client}/approve",
 					"event": [
 						{
 							"listen": "test",
@@ -433,7 +433,7 @@
 					"response": []
 				},
 				{
-					"name": "SPECIALIST | /discard/{client}",
+					"name": "SPECIALIST | /{client}/discard",
 					"event": [
 						{
 							"listen": "test",
@@ -479,7 +479,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/bind/discard/{{client-username}}",
+							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/bind/{{client-username}}/discard",
 							"protocol": "{{scheme}}",
 							"host": [
 								"{{host}}"
@@ -488,8 +488,8 @@
 							"path": [
 								"{{api-path}}",
 								"bind",
-								"discard",
-								"{{client-username}}"
+								"{{client-username}}",
+								"discard"
 							]
 						}
 					},
