@@ -192,8 +192,11 @@
 						{
 							"listen": "prerequest",
 							"script": {
-								"exec": [],
-								"type": "text/javascript"
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -353,7 +356,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/bind/request/{{specialist-username}}",
+							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/bind/{{specialist-username}}/request",
 							"protocol": "{{scheme}}",
 							"host": [
 								"{{host}}"
@@ -362,8 +365,8 @@
 							"path": [
 								"{{api-path}}",
 								"bind",
-								"request",
-								"{{specialist-username}}"
+								"{{specialist-username}}",
+								"request"
 							]
 						}
 					},
@@ -416,7 +419,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/bind/approve/{{client-username}}",
+							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/bind/{{client-username}}/approve",
 							"protocol": "{{scheme}}",
 							"host": [
 								"{{host}}"
@@ -425,8 +428,8 @@
 							"path": [
 								"{{api-path}}",
 								"bind",
-								"approve",
-								"{{client-username}}"
+								"{{client-username}}",
+								"approve"
 							]
 						}
 					},
@@ -699,137 +702,6 @@
 			"name": "/assignment",
 			"item": [
 				{
-					"name": "CLIENT | /list",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access-token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"clientUsername\": \"{{client-username}}\",\n    \"questionnaireId\": 1\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/assignment/list",
-							"protocol": "{{scheme}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"{{api-path}}",
-								"assignment",
-								"list"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "SPECIALIST | /list/{client}",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "{{access-token}}",
-									"type": "string"
-								}
-							]
-						},
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/assignment/list/{{client-username}}",
-							"protocol": "{{scheme}}",
-							"host": [
-								"{{host}}"
-							],
-							"port": "{{port}}",
-							"path": [
-								"{{api-path}}",
-								"assignment",
-								"list",
-								"{{client-username}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "SPECIALIST | /create",
 					"event": [
 						{
@@ -948,6 +820,137 @@
 								"{{api-path}}",
 								"assignment",
 								"delete"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "SPECIALIST | /list/{client}",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/assignment/list/{{client-username}}",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"{{api-path}}",
+								"assignment",
+								"list",
+								"{{client-username}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CLIENT | /list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access-token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/assignment/list",
+							"protocol": "{{scheme}}",
+							"host": [
+								"{{host}}"
+							],
+							"port": "{{port}}",
+							"path": [
+								"{{api-path}}",
+								"assignment",
+								"list"
 							]
 						}
 					},
@@ -1076,7 +1079,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/questionnaire/history/Kenny",
+							"raw": "{{scheme}}://{{host}}:{{port}}/{{api-path}}/questionnaire/history/{{client-username}}",
 							"protocol": "{{scheme}}",
 							"host": [
 								"{{host}}"
@@ -1086,7 +1089,7 @@
 								"{{api-path}}",
 								"questionnaire",
 								"history",
-								"Kenny"
+								"{{client-username}}"
 							]
 						}
 					},
@@ -1197,7 +1200,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"answers\": {\n        \"1\": 1,\n        \n        \"3\": 4\n    }\n}",
+							"raw": "{\n    \"answers\": {\n        \"1\": 1,\n        \"2\": 1,\n        \"3\": 4\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"

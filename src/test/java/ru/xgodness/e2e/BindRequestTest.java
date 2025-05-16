@@ -125,7 +125,7 @@ public class BindRequestTest {
     @Test
     public void testApprovePendingBind_validClient_204() {
         ResponseEntity<String> entity = approveBindRequest(context, specialistA, clientA);
-        assertEquals(OK, entity.getStatusCode());
+        assertEquals(NO_CONTENT, entity.getStatusCode());
 
         assertNull(entity.getBody());
     }
@@ -155,7 +155,7 @@ public class BindRequestTest {
     @Test
     public void testDiscardPendingBind_validClient_204() {
         ResponseEntity<String> entity = discardBindRequest(context, specialistA, clientB);
-        assertEquals(OK, entity.getStatusCode());
+        assertEquals(NO_CONTENT, entity.getStatusCode());
         assertNull(entity.getBody());
     }
 

@@ -56,7 +56,7 @@ public class QuestionnaireController {
     @PostMapping("/{questionnaire-id}/complete")
     public ResponseEntity<Void> complete(@PathVariable(name = "questionnaire-id") long questionnaireId) {
         completionService.complete(questionnaireId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @PreAuthorize("hasAuthority('SPECIALIST')")

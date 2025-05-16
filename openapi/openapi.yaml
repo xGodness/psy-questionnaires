@@ -1,0 +1,869 @@
+openapi: 3.0.3
+info:
+  title: Веб-сервис обработки анкет первичной психологической диагностики
+  description: |-
+    **Спецификация OpenAPI**
+    
+    Все запросы, не относящиеся к аутентификации и получению/обновлению JWT, требуют наличия заголовка авторизации с токеном доступа.
+
+    Все ответы сервера, не являющиеся успешными (3xx, 4xx, 5xx), содержат в теле описание ошибок в формате json. Описание тела ответа с ошибками приведено в `Schemas/ErrorMessages`.
+
+
+  version: 1.0.0
+servers:
+  - url: http://yourhost:8080/psy-questionnaires/api/v1
+
+tags:
+  - name: auth
+    description: Операции аутентификации и получения JWT
+  - name: bind
+    description: Операции управления связями клиент-специалист
+  - name: assignment
+    description: Операции управления назначениями на заполнение анкет
+  - name: questionnaire
+    description: Операции взаимодействия с анкетами
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - auth
+      summary: Зарегистрироваться в системе
+      operationId: login
+      requestBody:
+        required: true
+        description: Данные для аутентификации
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        "204":
+          description: Пользователь зарегистрирован
+        "400":
+          description: Неверный формат тела запроса
+        "409":
+          description: Пользователь с таким именем уже существует
+        "422":
+          description: Ошибка в теле запроса
+        "500":
+          description: Внутренняя ошибка сервера
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Аутентифицироваться в системе
+      operationId: register
+      requestBody:
+        required: true
+        description: Данные о пользователе
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        "200":
+          description: Аутентификация успешна
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtResponse"
+        "400":
+          description: Неверный формат тела запроса
+        "401":
+          description: Неверный логин или пароль
+        "422":
+          description: Ошибка в теле запроса
+        "500":
+          description: Внутренняя ошибка сервера
+  /auth/token/access:
+    post:
+      tags:
+        - auth
+      summary: Обновить Access Token
+      operationId: token/access
+      requestBody:
+        required: true
+        description: Refresh Token
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshToken'
+      responses:
+        "200":
+          description: Access Token обновлен (поле `refreshToken` будет равно `null`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtResponse"
+        "400":
+          description: Неверный формат тела запроса
+        "401":
+          description: Неверный Refresh Token
+        "500":
+          description: Внутренняя ошибка сервера
+  /auth/token/refresh:
+    post:
+      tags:
+        - auth
+      summary: Обновить Refresh Token
+      operationId: token/refresh
+      requestBody:
+        required: true
+        description: Refresh Token
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshToken'
+      responses:
+        "200":
+          description: Refresh Token обновлен, выдан новый Access Token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JwtResponse"
+        "400":
+          description: Неверный формат тела запроса
+        "401":
+          description: Неверный Refresh Token
+        "500":
+          description: Внутренняя ошибка сервера
+
+
+  /bind/{specialist-username}/request:
+    post:
+      tags:
+        - bind
+      summary: Отправить заявку на создание связи со специалистом
+      operationId: /bind/{specialist-username}/request
+      parameters:
+        - name: specialist-username
+          in: path
+          required: true
+          description: Имя пользователя специалиста
+          schema:
+            type: string
+            minLength: 1
+            nullable: false
+            example: "Eric"
+            readOnly: true
+      responses:
+        "204":
+          description: Заявка отправлена
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `client`)
+        "404":
+          description: Специалист с таким именем пользователя не найден
+        "409":
+          description: Заявка уже была отправлена
+        "500":
+          description: Внутренняя ошибка сервера
+  /bind/{client-username}/approve:
+    post:
+      tags:
+        - bind
+      summary: Приянть заявку на создание связи от клиента
+      operationId: /bind/{client-username}/approve
+      parameters:
+        - name: client-username
+          in: path
+          required: true
+          description: Имя пользователя клиента
+          schema:
+            type: string
+            minLength: 1
+            nullable: false
+            example: "Kenny"
+      responses:
+        "204":
+          description: Заявка принята, связь создана
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `specialist`)
+        "404":
+          description: Заявка от клиента с таким именем пользователя не найдена
+        "500":
+          description: Внутренняя ошибка сервера
+  /bind/{client-username}/discard:
+    post:
+      tags:
+        - bind
+      summary: Отклонить заявку на создание связи от клиента
+      operationId: /bind/{client-username}/discard
+      parameters:
+        - name: client-username
+          in: path
+          required: true
+          description: Имя пользователя клиента
+          schema:
+            type: string
+            minLength: 1
+            nullable: false
+            example: "Kenny"
+      responses:
+        "204":
+          description: Заявка отклонена
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `specialist`)
+        "404":
+          description: Заявка от клиента с таким именем пользователя не найдена
+        "500":
+          description: Внутренняя ошибка сервера
+  /bind/get/all:
+    get:
+      tags:
+        - bind
+      summary: Получить списки принятых заявок и заявок, ожидающих подтверждения
+      operationId: /bind/get/all
+      responses:
+        "200":
+          description: Запрос успешен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BindList'
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `specialist`)
+        "500":
+          description: Внутренняя ошибка сервера
+
+  /assignment/create:
+    post:
+      tags:
+        - assignment
+      summary: Создать назначение на заполнение анкеты клиентом
+      operationId: /assignment/create
+      requestBody:
+        required: true
+        description: Информация о назначении
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentRequest'
+      responses:
+        "204":
+          description: Назначение создано
+        "400":
+          description: Неверный формат тела запроса
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `specialist`)
+        "404":
+          description: Клиент с таким именем не найден
+        "500":
+          description: Внутренняя ошибка сервера
+  /assignment/delete:
+    post:
+      tags:
+        - assignment
+      summary: Удалить назначение на заполнение анкеты клиентом
+      operationId: /assignment/delete
+      requestBody:
+        required: true
+        description: Информация о назначении
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignmentRequest'
+      responses:
+        "204":
+          description: Назначение удалено
+        "400":
+          description: Неверный формат тела запроса
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `specialist`)
+        "404":
+          description: Назначение или клиент не найдены
+        "500":
+          description: Внутренняя ошибка сервера
+  /assignment/list/{client-username}:
+    get:
+      tags:
+        - assignment
+      summary: Получить список всех назначенных клиенту анкет (запрос для специалиста)
+      operationId: /assignment/list/{client-username}
+      parameters:
+        - name: client-username
+          in: path
+          required: true
+          description: Имя пользователя клиента
+          schema:
+            type: string
+            minLength: 1
+            nullable: false
+            example: "Kenny"
+      responses:
+        "200":
+          description: Запрос успешен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questionnaires:
+                    type: array
+                    nullable: false
+                    items:
+                      $ref: "#/components/schemas/QuestionnaireIdentifier"
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `specialist`)
+        "404":
+          description: Клиент с таким именем не найден
+        "500":
+          description: Внутренняя ошибка сервера
+  /assignment/list:
+    get:
+      tags:
+        - assignment
+      summary: Получить список всех назначенных клиенту анкет (запрос для клиента)
+      operationId: /assignment/list
+      responses:
+        "200":
+          description: Запрос успешен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questionnaires:
+                    type: array
+                    nullable: false
+                    items:
+                      $ref: "#/components/schemas/QuestionnaireIdentifier"
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `client`)
+        "500":
+          description: Внутренняя ошибка сервера
+
+  /questionnaire/{id}:
+    get:
+      tags:
+        - questionnaire
+      summary: Получить анкету (список вопросов, варианты ответов и прочую информацию)
+      operationId: /questionnaire/{id}
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор анкеты
+          schema:
+            type: integer
+            format: int64
+            nullable: false
+            minimum: 1
+            example: 1
+      responses:
+        "200":
+          description: Запрос успешен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionnaireForm"
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (если запрос выполняет клиент, которому не была назначена анкета с таким идентификатором)
+        "500":
+          description: Внутренняя ошибка сервера
+  /questionnaire/list:
+    get:
+      tags:
+        - questionnaire
+      summary: Получить список всех анкет в системе (возможна фильтрация)
+      operationId: /questionnaire/list
+      parameters:
+        - name: filter
+          in: query
+          required: false
+          description: Фильтр по названию анкеты, регистр неважен
+          schema:
+            type: string
+            nullable: true
+            example: Название анкеты
+      responses:
+        "200":
+          description: Запрос успешен
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  questionnaires:
+                    type: array
+                    nullable: false
+                    items:
+                      $ref: "#/components/schemas/QuestionnaireIdentifier"
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `specialist`)
+        "414":
+          description: Слишком длинный URI (недопустимая длина фильтра)
+        "500":
+          description: Внутренняя ошибка сервера
+
+  /questionnaire/{id}/state:
+    get:
+      tags:
+        - questionnaire
+      summary: Получить текущее состояние заполнения анкеты
+      description: Если клиенту назначено заполнение анкеты, он может заполнять ее постепенно, передавая с каждым запросом ответы на некоторые вопросы. С помощью данного запроса клиент может получить список вопросов и текущих выбранных ответов на них. Значение `0` означанет, что для вопроса еще не был выбран вариант ответа.
+      operationId: /questionnaire/{id}/state
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор анкеты
+          schema:
+            type: integer
+            format: int64
+            nullable: false
+            minimum: 1
+            example: 1
+      responses:
+        "200":
+          description: Запрос успешен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionnaireAnswersState"
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `client`, которым было назначаено заполнение анкеты с таким идентификатором)
+        "404":
+          description: Анкета с таким идентификатором не найдена
+        "500":
+          description: Внутренняя ошибка сервера
+  /questionnaire/{id}/update:
+    put:
+      tags:
+        - questionnaire
+      summary: Обновить ответы в анкете
+      description: Если клиенту назначено заполнение анкеты, он может заполнять ее постепенно, передавая с каждым запросом ответы на некоторые вопросы. С помощью данного запроса клиент может обновить свои ответы на некотоые вопросы анкеты.
+      operationId: /questionnaire/{id}/update
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор анкеты
+          schema:
+            type: integer
+            format: int64
+            nullable: false
+            minimum: 1
+            example: 1
+      requestBody:
+        required: true
+        description: Ответы на вопросы
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuestionnaireAnswersUpdates'
+      responses:
+        "200":
+          description: Запрос успешен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuestionnaireAnswersState"
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `client`, которым было назначаено заполнение анкеты с таким идентификатором)
+        "404":
+          description: Анкета с таким идентификатором не найдена
+        "422":
+          description: Ошибка в теле запроса
+        "500":
+          description: Внутренняя ошибка сервера
+  /questionnaire/{id}/complete:
+    post:
+      tags:
+        - questionnaire
+      summary: Отправить анкету на проверку
+      description: Если клиенту назначено заполнение анкеты, он может заполнять ее постепенно, передавая с каждым запросом ответы на некоторые вопросы. С помощью данного запроса клиент может отправить заполненную анкету на проверку, если все вопросы уже были отвечены.
+      operationId: /questionnaire/{id}/complete
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Идентификатор анкеты
+          schema:
+            type: integer
+            format: int64
+            nullable: false
+            minimum: 1
+            example: 1
+      responses:
+        "204":
+          description: Анкета отправлена на проверку
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `client`, которым было назначаено заполнение анкеты с таким идентификатором)
+        "404":
+          description: Анкета с таким идентификатором не найдена
+        "409":
+          description: Не все вопросы были отвечены, отправка на проверку невозможна
+        "500":
+          description: Внутренняя ошибка сервера
+
+  /questionnaire/history/{client-username}:
+    get:
+      tags:
+        - questionnaire
+      summary: Получить историю заполнения анкет клиента
+      operationId: /questionnaire/history/{client-username}
+      parameters:
+        - name: client-username
+          in: path
+          required: true
+          description: Имя пользователя клиента
+          schema:
+            type: string
+            minLength: 1
+            nullable: false
+            example: "Kenny"
+      responses:
+        "200":
+          description: Запрос успешен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientHistory"
+        "401":
+          description: Ошибка аутентификации
+        "403":
+          description: Доступ запрещен (операция доступна только пользователям с ролью `specialist`)
+        "404":
+          description: Клиент с таким именем не найден
+        "500":
+          description: Внутренняя ошибка сервера
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ErrorMessages:
+      type: object
+      required:
+        - messages
+      properties:
+        messages:
+          type: array
+          nullable: false
+          example: "[\"Описание ошибки 1\", \"Описание ошибки 2\"]"
+          items:
+            type: string
+            nullable: false
+
+    RegisterRequest:
+      type: object
+      required:
+        - username
+        - password
+        - role
+      properties:
+        username:
+          type: string
+          nullable: false
+          minLength: 1
+          example: "Kenny"
+        password:
+          type: string
+          nullable: false
+          minLength: 8
+          example: "mcCormick123"
+        role:
+          allOf:
+            - $ref: "#/components/schemas/Role"
+            - nullable: false
+    Role:
+      type: string
+      enum:
+        - client
+        - specialist
+    LoginRequest:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          nullable: false
+          minLength: 1
+          example: "Kenny"
+        password:
+          type: string
+          nullable: false
+          minLength: 8
+          example: "mcCormick123"
+    JwtResponse:
+      type: object
+      required:
+        - type
+        - accessToken
+        - refreshToken
+      properties:
+        type:
+          type: string
+          nullable: false
+          example: "Bearer"
+        accesToken:
+          type: string
+          nullable: true
+          example: "accessTokenString"
+        refreshToken:
+          type: string
+          nullable: true
+          example: "refreshTokenString"
+    RefreshToken:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          nullable: false
+          example: "refreshTokenString"
+    BindList:
+      type: object
+      required:
+        - pending
+        - approved
+      properties:
+        pending:
+          type: array
+          nullable: false
+          example: "[\"Kenny\", \"Butters\"]"
+          items:
+            type: string
+            nullable: false
+        approved:
+          type: array
+          nullable: false
+          example: "[\"Kyle\", \"Stan\"]"
+          items:
+            type: string
+            nullable: false
+    AssignmentRequest:
+      type: object
+      required:
+        - clientUsername
+        - questionnaireId
+      properties:
+        clientUsername:
+          type: string
+          nullable: false
+          minLength: 1
+          example: "Kenny"
+        questionnaireId:
+          type: integer
+          format: int64
+          nullable: false
+          minimum: 1
+          example: 1
+    QuestionnaireIdentifier:
+      type: object
+      required:
+        - id
+        - name
+        - displayName
+      properties:
+        id:
+          type: integer
+          format: int64
+          nullable: false
+          minimum: 1
+          example: 1
+        name:
+          type: string
+          nullable: false
+          minLength: 1
+          example: "example_questionnaire"
+        displayName:
+          type: string
+          nullable: false
+          minLength: 1
+          example: "Пример анкеты"
+    QuestionnaireForm:
+      type: object
+      required:
+        - displayName
+        - description
+        - questions
+      properties:
+        displayName:
+          type: string
+          nullable: false
+          minLength: 1
+          example: "Пример анкеты"
+        description:
+          type: string
+          nullable: false
+          minLength: 1
+          example: "Инструкции к заполнению"
+        questions:
+          type: array
+          nullable: false
+          items:
+            type: object
+            required:
+              - questionText
+              - answerOptions
+            properties:
+              questionText:
+                type: string
+                nullable: false
+                minLength: 1
+                example: "Пример текста вопроса"
+              answerOptions:
+                type: array
+                nullable: false
+                items:
+                  type: string
+                  nullable: false
+                  minLength: 1
+                  example: "Пример варианта ответа"
+    QuestionnaireAnswersState:
+      type: object
+      required:
+        - answers
+      properties:
+        answers:
+          type: object
+          nullable: false
+          additionalProperties:
+            type: integer
+            format: int32
+            nullable: false
+            minimum: 0
+      example:
+        "answers": {
+          "1": 3,
+          "2": 1,
+          "3": 0,
+          "4": 0
+        }
+    QuestionnaireAnswersUpdates:
+      type: object
+      required:
+        - answers
+      properties:
+        answers:
+          type: object
+          nullable: false
+          additionalProperties:
+            type: integer
+            format: int32
+            nullable: false
+            minimum: 1
+      example:
+        "answers": {
+          "1": 3,
+          "2": 1
+        }
+    ClientHistory:
+      type: object
+      required:
+        - clientUsername
+        - history
+      additionalProperties:
+        type: object
+        properties:
+          clientUsername:
+            type: string
+            nullable: false
+            minLength: 1
+            example: "Kenny"
+          history:
+            $ref: "#/components/schemas/QuestionnaireCompletionResult"
+      example:
+        {
+          "clientUsername": "Kenny",
+          "history": {
+            "Название анкеты": [
+              {
+                "completionDate": "2025-04-16T12:49:03.022+00:00",
+                "resultSum": 3,
+                "resultInterpretation": "низкий уровень",
+                "answers": {
+                  "1": 1,
+                  "2": 1,
+                  "3": 4
+                }
+              }
+            ]
+          }
+        }
+
+    QuestionnaireCompletionResult:
+      type: object
+      required:
+        - completionDate
+        - resultSum
+        - resultInterpretation
+        - answers
+      properties:
+        completionDate:
+          type: string
+          format: date
+          nullable: false
+          example: "2025-04-16T12:49:03.022+00:00"
+          description: "Формат -- timestamp"
+        resultSum:
+          type: integer
+          format: int32
+          nullable: false
+          minimum: 1
+          example: 3
+          description: "Сумма набранных баллов"
+        resultInterpretation:
+          type: string
+          nullable: false
+          minLength: 1
+          example: "низкий уровень"
+          description: "Интерпретация результата"
+        answers:
+          type: object
+          required:
+            - answers
+          properties:
+            answers:
+              type: object
+              nullable: false
+              additionalProperties:
+                type: integer
+                format: int32
+                nullable: false
+                minimum: 0
+          example:
+            "answers": {
+              "1": 3,
+              "2": 1,
+              "3": 2,
+              "4": 1
+            }
